@@ -25,6 +25,26 @@ const CHAT_SUGGESTIONS: Record<string, string[]> = {
     "How do confidence scores work?",
     "What's the accuracy on Arabic handwriting?",
   ],
+  "ai-chatbot": [
+    "How did you hit 90% first-contact resolution?",
+    "How does the escalation to humans work?",
+    "What kept answers accurate for the public?",
+  ],
+  "regulatory-change-watcher": [
+    "How do you keep false positives so low?",
+    "Why diff before using the LLM?",
+    "How has it stayed reliable for 3+ years?",
+  ],
+  "prompt-eval-harness": [
+    "What does the CI gate actually block?",
+    "How does the judge-LLM scoring work?",
+    "What regressions did it catch?",
+  ],
+  "mcp-portfolio-server": [
+    "Which tools does the server expose?",
+    "Why typed tools over a search endpoint?",
+    "How do I wire it into Claude or Cursor?",
+  ],
 };
 
 const DIAGRAMS: Record<string, ComponentType> = {

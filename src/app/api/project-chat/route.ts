@@ -36,7 +36,11 @@ function buildContext(slug: string): string | null {
     parts.push(
       `\nLESSONS LEARNED:\n${study.lessons.map((l) => `- ${l}`).join("\n")}`,
     );
-    parts.push(`\nSTAKEHOLDER QUOTE: "${study.quote.text}" — ${study.quote.author}`);
+    if (study.quote) {
+      parts.push(
+        `\nSTAKEHOLDER QUOTE: "${study.quote.text}" — ${study.quote.author}`,
+      );
+    }
   }
 
   return parts.join("\n");

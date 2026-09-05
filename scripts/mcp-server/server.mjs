@@ -46,8 +46,15 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+// Shared, single source of truth for the RAG corpus — the SAME chunks the live
+// portfolio embeds into Pinecone. Imported so this server can never drift from
+// the website's corpus.
+import { RAG_CORPUS_DATA } from "../../src/data/rag-corpus.data.mjs";
 
-// ── Static data (mirror of the website's /data/cv.ts highlights) ──────────
+// ── Static data ───────────────────────────────────────────────────────────
+// PROFILE / PROJECTS / SKILLS below are a curated subset for agent tooling.
+// The RAG CORPUS (further down) is imported from the shared module so it stays
+// identical to what the live site embeds into Pinecone.
 const PROFILE = {
   name: "Mazhar Hayat",
   title: "AI Solutions Architect",
@@ -107,14 +114,14 @@ const SKILLS = {
   "Full Stack": [".NET Core 8", "ASP.NET Web API", "Angular 17", "React", "TypeScript", "SQL Server"],
 };
 
-const CORPUS = [
-  { id: "bio", category: "About", text: "Mazhar Hayat is an AI Solutions Architect with 15+ years of experience building production-grade intelligent systems. Based in Abu Dhabi, UAE. Specialises in LLM integration, RAG architectures, and conversational AI for government and enterprise environments." },
-  { id: "rag-flagship", category: "Project · RAG", text: "Built and shipped an enterprise RAG document-intelligence system at SCAD. Indexes 100K+ government documents. 92% accuracy on a 50-question gold set. Sub-2s p95 latency. 65% cost reduction vs initial baseline. In production for 8 months, hasn't needed Mazhar in 3." },
-  { id: "nl-sql", category: "Project · NL-to-SQL", text: "Natural-language to SQL platform across 8 government databases. 200+ analysts use it daily. 85%+ accuracy achieved through execution-aware repair loops — when the generated SQL errors, the LLM sees the error and iterates. Supports Arabic and English queries." },
-  { id: "vision", category: "Project · Vision AI", text: "Document intelligence pipeline using Azure Form Recognizer + GPT-4 Vision + Tesseract OCR. Type-aware routing to the cheapest extractor that works. Confidence-gated human-in-loop for low-confidence extractions. Saves 2,000+ staff-hours per month." },
-  { id: "philosophy", category: "Approach", text: "Believes evals are the new unit tests. Cite-or-refuse prompting. Confidence-gated UI. Cost-aware model routing. The boring stuff that turns demos into systems." },
-  { id: "hiring", category: "Availability", text: "Open from June 2026 for senior IC, principal, or hands-on tech-lead AI roles. Remote, hybrid (UAE), or relocation for the right role. Looking for organisations that ship and measure AI quality." },
-];
+// Normalised to { id, category, title, text } from the shared corpus so the
+// existing search_cv / cv://corpus consumers keep working unchanged.
+const CORPUS = RAG_CORPUS_DATA.map((c) => ({
+  id: c.id,
+  category: c.category,
+  title: c.title,
+  text: c.content,
+}));
 
 // ── MCP server setup ──────────────────────────────────────────────────────
 const server = new Server(
@@ -199,7 +206,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       // Simple keyword scoring — for real semantic search, agents should hit
       // the /api/rag-demo endpoint on the portfolio.
       const scored = CORPUS.map((c) => {
-        const haystack = (c.text + " " + c.category).toLowerCase();
+        const haystack = (c.text + " " + c.title + " " + c.category).toLowerCase();
         let score = 0;
         for (const term of query.split(/\s+/).filter(Boolean)) {
           if (haystack.includes(term)) score += 1;

@@ -146,7 +146,11 @@ export interface ProjectStudy {
   timeline: { phase: string; period: string; story: string }[];
   decisions: { title: string; why: string }[];
   lessons: string[];
-  quote: { text: string; author: string };
+  /**
+   * Optional stakeholder quote. Omit unless it's a real, attributable quote —
+   * the project page hides this section when absent.
+   */
+  quote?: { text: string; author: string };
 }
 
 export const PROJECT_STUDIES: Record<string, ProjectStudy> = {
@@ -350,6 +354,228 @@ export const PROJECT_STUDIES: Record<string, ProjectStudy> = {
       text: "The pipeline saves the team two thousand hours every single month. But the bigger win is the confidence dashboard — we can now point at any number in our reports and trace it back to the source document.",
       author: "Operations Lead, Census Programme · SCAD",
     },
+  },
+
+  // NOTE: The studies below are drafts grounded in the facts already stated in
+  // PROJECTS. Review before publishing. Stakeholder quotes are intentionally
+  // omitted — add real, attributable quotes when available.
+
+  "ai-chatbot": {
+    slug: "ai-chatbot",
+    tagline:
+      "One assistant absorbing 18,000+ support questions a month — so 500+ people a day stop waiting in a human queue.",
+    before:
+      "Support agents were drowning in repetitive, high-volume queries about publications, data definitions, and admin processes. Response times stretched, and the same questions were answered over and over.",
+    after:
+      "A context-aware assistant now resolves 90% of questions on first contact, handles 18,000+ queries a month for 500+ daily users, and cut support costs by 43% — freeing agents for the genuinely hard cases.",
+    timeline: [
+      {
+        phase: "Query mining",
+        period: "Phase 1",
+        story:
+          "Analysed historical support tickets to find the highest-volume intents. A small set of question types accounted for the majority of load — the obvious first targets for automation.",
+      },
+      {
+        phase: "Intent routing",
+        period: "Phase 2",
+        story:
+          "Built an intent classifier in front of the model so each question is routed to the right knowledge and tone, rather than sending everything to a single generic prompt.",
+      },
+      {
+        phase: "Multi-turn dialogue",
+        period: "Phase 3",
+        story:
+          "Added context-aware multi-turn handling so follow-up questions keep their thread — the difference between a demo and something people actually rely on.",
+      },
+      {
+        phase: "Escalation & rollout",
+        period: "Phase 4 — Present",
+        story:
+          "Confidence-gated hand-off to human agents for anything the assistant is unsure about, then a staged rollout to staff and the public with ongoing review of missed answers.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Intent routing before generation",
+        why: "Routing to the right knowledge slice and tone per intent is what pushed first-contact resolution to 90% — far more than prompt-tuning a single catch-all prompt.",
+      },
+      {
+        title: "Confidence-gated human escalation",
+        why: "A support bot that guesses erodes trust fast. Handing low-confidence questions to a human keeps quality high while still deflecting the bulk of volume.",
+      },
+      {
+        title: "Grounded answers over free generation",
+        why: "Retrieval augmentation keeps answers tied to real publications and definitions, which matters when the audience includes the public.",
+      },
+    ],
+    lessons: [
+      "Most support volume is a handful of intents — automate those first, not everything.",
+      "First-contact resolution is the metric that actually reflects user experience.",
+      "An escalation path is a feature, not a fallback — it's what makes automation safe to ship.",
+      "Multi-turn context is what turns a novelty bot into a daily-use tool.",
+    ],
+  },
+
+  "regulatory-change-watcher": {
+    slug: "regulatory-change-watcher",
+    tagline:
+      "Watching 30+ regulator sites every day so a compliance team doesn't have to — and only pinging them when it actually matters.",
+    before:
+      "The compliance team manually scanned 30+ regulator websites for changes affecting labour-services applications. It was slow, easy to miss things, and impossible to do consistently every day.",
+    after:
+      "A daily crawler + LLM diff summariser posts only material policy changes — with citations — to a Teams channel. Review effort dropped ~80%, and it has run for 3+ years with under 5 false-positive flags total.",
+    timeline: [
+      {
+        phase: "Source mapping",
+        period: "Phase 1",
+        story:
+          "Catalogued the 30+ regulator sources that actually affect labour-services work and how each publishes changes, so the crawler watches the right pages rather than everything.",
+      },
+      {
+        phase: "Change detection",
+        period: "Phase 2",
+        story:
+          "Built a daily crawler that snapshots each source and diffs against the prior version — the cheap, deterministic layer that catches that something changed before any LLM is involved.",
+      },
+      {
+        phase: "Materiality summarisation",
+        period: "Phase 3",
+        story:
+          "An LLM summarises each diff and judges whether it's material to labour services, with citations back to the source — turning raw diffs into a decision-ready brief.",
+      },
+      {
+        phase: "Signal-only alerting",
+        period: "Phase 4 — Present",
+        story:
+          "Only material changes are posted to a Teams channel. Tuning the materiality bar down to near-zero false positives is what earned the team's trust to actually read every alert.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Deterministic diffing before the LLM",
+        why: "Detecting that a page changed is a cheap, reliable job for classical diffing. The LLM is reserved for the hard part — judging whether the change matters.",
+      },
+      {
+        title: "Citations on every alert",
+        why: "Compliance can't act on an unverifiable summary. Linking straight to the changed source is what makes the alert usable, not just informative.",
+      },
+      {
+        title: "Optimise for precision over recall of noise",
+        why: "An alerting system people ignore is worse than none. Keeping false positives under 5 in three years is why the channel still gets read.",
+      },
+    ],
+    lessons: [
+      "Split the cheap deterministic step (did it change?) from the expensive reasoning step (does it matter?).",
+      "For alerting, precision beats recall — one noisy week and people mute the channel.",
+      "Citations turn an LLM summary from 'interesting' into 'actionable'.",
+      "Longevity is the real proof: a tool running quietly for 3+ years says more than a launch metric.",
+    ],
+  },
+
+  "prompt-eval-harness": {
+    slug: "prompt-eval-harness",
+    tagline:
+      "Stop shipping prompts on vibes: 400+ graded queries and a CI gate that blocks retrieval and answer-quality regressions.",
+    before:
+      "Every prompt or retrieval tweak on the RAG and NL-to-SQL systems was shipped on intuition. There was no way to know whether a change quietly regressed quality until users noticed.",
+    after:
+      "An evaluation harness with ~400 graded queries, judge-LLM scoring, and a CI step that blocks regressions. It caught 6 regressions before production and made prompt iteration data-driven instead of guesswork.",
+    timeline: [
+      {
+        phase: "Gold-standard sets",
+        period: "Phase 1",
+        story:
+          "Assembled ~400 graded queries across the RAG and NL-to-SQL systems — the fixed yardstick every future change is measured against.",
+      },
+      {
+        phase: "Judge-LLM scoring",
+        period: "Phase 2",
+        story:
+          "Added an LLM judge to score answer quality and a retrieval-recall metric, so 'better' becomes a number instead of an opinion.",
+      },
+      {
+        phase: "CI gate",
+        period: "Phase 3",
+        story:
+          "Wired the harness into CI so any prompt or retrieval change that drops recall or answer quality below threshold fails the build before it can merge.",
+      },
+      {
+        phase: "Adoption",
+        period: "Phase 4 — Present",
+        story:
+          "Made the harness the mandatory gate on every RAG/NL-to-SQL change. It caught 6 regressions that would otherwise have shipped.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Fixed gold-standard sets over ad-hoc spot checks",
+        why: "A stable, graded set is the only way to compare two versions honestly. Ad-hoc testing hides regressions rather than surfacing them.",
+      },
+      {
+        title: "Judge-LLM plus a hard retrieval metric",
+        why: "Answer-quality judging is fuzzy; retrieval recall is not. Pairing a soft judge with a hard metric catches both reasoning and retrieval regressions.",
+      },
+      {
+        title: "Block in CI, not in review",
+        why: "Regressions caught by a human reviewer are caught inconsistently. A CI gate makes quality non-negotiable and removes it from opinion.",
+      },
+    ],
+    lessons: [
+      "Evaluation infrastructure is the highest-leverage thing you can build for a RAG system — build it early.",
+      "You can't improve what you don't measure, and 'the answers feel better' isn't a measurement.",
+      "A judge-LLM plus one hard metric beats either alone.",
+      "The moment quality lives in CI, prompt iteration stops being scary.",
+    ],
+  },
+
+  "mcp-portfolio-server": {
+    slug: "mcp-portfolio-server",
+    tagline:
+      "Turning a CV into an API: a Model Context Protocol server so Claude, Cursor, and ChatGPT can query real portfolio data.",
+    before:
+      "AI assistants had no clean way to query my CV, projects, and case studies as structured data — they could only scrape a rendered page and guess.",
+    after:
+      "A stdio MCP server exposes typed tools (get_projects, get_case_study, search_writing) so any compatible client can ground its answers in real portfolio data. It's documented at /mcp with copy-paste config and also underpins the on-site Ask AI chatbot.",
+    timeline: [
+      {
+        phase: "Tool surface design",
+        period: "Phase 1",
+        story:
+          "Decided what a client actually needs to answer questions about me and shaped that into a small set of typed tools rather than one fuzzy 'search' endpoint.",
+      },
+      {
+        phase: "Shared data source",
+        period: "Phase 2",
+        story:
+          "Backed the tools with the same structured portfolio data the site uses, so the MCP answers and the website can't drift apart.",
+      },
+      {
+        phase: "stdio server + docs",
+        period: "Phase 3",
+        story:
+          "Implemented the server over stdio and documented it at /mcp with copy-paste config, so a recruiter can wire it into Claude or Cursor in a couple of minutes.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Typed tools over a single search endpoint",
+        why: "Specific tools (get_projects, get_case_study) give the client a clear contract and better answers than one catch-all search that returns a blob.",
+      },
+      {
+        title: "One shared data source with the site",
+        why: "If the MCP server and the website read different data, they'll contradict each other. A single source keeps every surface consistent.",
+      },
+      {
+        title: "stdio + copy-paste config",
+        why: "The whole point is frictionless adoption. stdio works with the common MCP clients, and copy-paste config removes the setup barrier.",
+      },
+    ],
+    lessons: [
+      "Exposing your own data over MCP is a concrete, memorable way to demonstrate the protocol — not just talk about it.",
+      "Typed tools beat a generic search endpoint for both answer quality and client ergonomics.",
+      "Sharing one data source across the site and the MCP server prevents contradictory answers.",
+      "Frictionless setup (copy-paste config) is what turns a demo into something people actually try.",
+    ],
   },
 };
 
