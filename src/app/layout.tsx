@@ -49,7 +49,7 @@ const caveat = Caveat({
 });
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://keen-tartufo-313e21.netlify.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://mazharhayat.live";
 
 const SHORT_DESCRIPTION =
   "AI Solutions Architect (15+ yrs) shipping production RAG, NL-to-SQL, and Vision AI systems. This site runs RAG on itself — try the live demo.";

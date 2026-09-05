@@ -127,7 +127,7 @@ export const RAG_CORPUS: KnowledgeChunk[] = [
     id: "portfolio-site",
     category: "meta",
     title: "About this portfolio site",
-    content: `This portfolio website was built by Mazhar Hayat using Next.js 14, TypeScript, Tailwind CSS, and Framer Motion. It features an AI chat widget, a live RAG demo with sandbox controls (top_k, rerank toggle, model picker), Cmd+K command palette, dark/light mode, /for-recruiters page, /stack transparency page, /ar Arabic landing page, /playground for paste-your-own-doc queries, and a /fit AI feature for comparing a job description against the CV. Source code: github.com/mazhar1790/portfolio. Live at keen-tartufo-313e21.netlify.app.`,
+    content: `This portfolio website was built by Mazhar Hayat using Next.js 14, TypeScript, Tailwind CSS, and Framer Motion. It features an AI chat widget, a live RAG demo with sandbox controls (top_k, rerank toggle, model picker), Cmd+K command palette, dark/light mode, /for-recruiters page, /stack transparency page, /ar Arabic landing page, /playground for paste-your-own-doc queries, and a /fit AI feature for comparing a job description against the CV. Source code: github.com/mazhar1790/portfolio. Live at mazharhayat.live.`,
   },
 
   // ── $0 stack and infrastructure (new) ──────────────────────────────────────
