@@ -197,7 +197,7 @@ export default function ChatWidget() {
                     Mazhar&apos;s AI
                   </p>
                   <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#9a9a96]">
-                    <span className="text-[#3fb578]">●</span> Online · Groq Llama 3.3
+                    <span className="text-[#3fb578]">●</span> Online · Groq GPT-OSS
                   </p>
                 </div>
               </div>
@@ -293,7 +293,7 @@ export default function ChatWidget() {
             />
 
             <p className="border-t border-[#e0dfd8] bg-white px-4 py-2 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-[#9a9a96] sm:rounded-b-3xl">
-              Powered by Llama 3.3 70B · Groq
+              Powered by GPT-OSS 120B · Groq
             </p>
           </motion.div>
         )}

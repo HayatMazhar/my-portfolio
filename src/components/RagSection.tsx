@@ -48,7 +48,7 @@ export default function RagSection() {
                 {
                   step: "03",
                   title: "Cited generation",
-                  desc: "Groq Llama 3.3 70B synthesises a cited answer from the top 5 chunks — in ~1 second.",
+                  desc: "Groq GPT-OSS 120B synthesises a cited answer from the top 5 chunks — in ~1 second.",
                 },
               ].map((item) => (
                 <div key={item.step} className="flex gap-4">
@@ -68,7 +68,7 @@ export default function RagSection() {
               <p className="text-xs text-paper-muted">
                 <span className="text-paper">16 knowledge chunks</span> · Pinecone
                 serverless · Gemini embed (3072d) · Cohere rerank-v3.5 ·
-                Groq Llama 3.3 70B · All free tier.
+                Groq GPT-OSS 120B · All free tier.
               </p>
             </div>
           </motion.div>

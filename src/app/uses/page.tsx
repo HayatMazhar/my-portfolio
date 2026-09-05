@@ -67,7 +67,7 @@ const SECTIONS: Section[] = [
     title: "AI / infra stack",
     items: [
       { name: "Azure OpenAI", detail: "Production GPT-4o for SCAD systems." },
-      { name: "Groq", detail: "Sub-second Llama 3.3 70B for low-latency UX." },
+      { name: "Groq", detail: "Sub-second GPT-OSS 120B for low-latency UX." },
       { name: "Pinecone", detail: "Serverless vector DB." },
       { name: "Cohere rerank", detail: "Precision lift on retrieval." },
       { name: "LangChain / Semantic Kernel", detail: "Orchestration when warranted." },

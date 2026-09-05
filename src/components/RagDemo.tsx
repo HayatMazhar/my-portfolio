@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GROQ_DEMO_MODELS } from "@/lib/groq-models";
 
 interface Source {
   id: string;
@@ -36,11 +37,7 @@ interface DemoResult {
   };
 }
 
-const MODELS = [
-  { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", hint: "best quality" },
-  { id: "llama-3.1-8b-instant", label: "Llama 3.1 8B", hint: "fastest" },
-  { id: "gemma2-9b-it", label: "Gemma 2 9B", hint: "lightweight" },
-];
+const MODELS = GROQ_DEMO_MODELS;
 
 const EXAMPLE_QUERIES = [
   "How did you cut document research from 2 hours to 10 seconds?",
@@ -180,7 +177,7 @@ export default function RagDemo() {
           <div>
             <p className="text-sm font-medium text-paper">Live RAG Demo</p>
             <p className="font-mono text-[10px] text-paper-dim">
-              Pinecone · Gemini embed · Cohere rerank · Groq Llama 3.3
+              Pinecone · Gemini embed · Cohere rerank · Groq GPT-OSS 120B
             </p>
           </div>
         </div>

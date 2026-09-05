@@ -135,7 +135,7 @@ export const RAG_CORPUS: KnowledgeChunk[] = [
     id: "stack-cost",
     category: "meta",
     title: "The $0/month tech stack powering this portfolio",
-    content: `This entire portfolio runs at $0/month — every AI feature included. The stack: Next.js 14 (open source), Netlify hosting (free starter tier, 100GB bandwidth), GitHub (free), Pinecone serverless (free starter, one index with ~36 CV chunks), Google Gemini embeddings (gemini-embedding-001, 3072 dimensions, free tier 1500 RPD), Groq inference (Llama 3.3 70B + 3.1 8B + Gemma 2, free tier with sub-second latency), Cohere reranking (rerank-v3.5, 1000 calls/month free), and Vercel Analytics & Speed Insights (free). Total monthly cost: $0. See /stack for the full breakdown.`,
+    content: `This entire portfolio runs at $0/month — every AI feature included. The stack: Next.js 14 (open source), Netlify hosting (free starter tier, 100GB bandwidth), GitHub (free), Pinecone serverless (free starter, one index with ~36 CV chunks), Google Gemini embeddings (gemini-embedding-001, 3072 dimensions, free tier 1500 RPD), Groq inference (GPT-OSS 120B + GPT-OSS 20B, free tier with sub-second latency), Cohere reranking (rerank-v3.5, 1000 calls/month free), and Vercel Analytics & Speed Insights (free). Total monthly cost: $0. See /stack for the full breakdown.`,
   },
   {
     id: "stack-principles",

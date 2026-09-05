@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { CV_CONTEXT } from "@/data/cv";
+import { GROQ_FAST_MODEL } from "@/lib/groq-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     const groq = new Groq({ apiKey: groqKey });
 
     const result = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: GROQ_FAST_MODEL,
       max_tokens: 150,
       messages: [
         {

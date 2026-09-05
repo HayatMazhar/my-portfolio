@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import { GROQ_CHAT_MODEL } from "@/lib/groq-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
     async start(controller) {
       try {
         const completion = await groq.chat.completions.create({
-          model: "llama-3.3-70b-versatile",
+          model: GROQ_CHAT_MODEL,
           temperature: 0.2,
           max_tokens: 600,
           stream: true,

@@ -59,11 +59,11 @@ const ROWS: Row[] = [
   },
   {
     service: "Groq",
-    role: "LLM inference (Llama 3.3 70B + 3.1 8B + Gemma 2)",
+    role: "LLM inference (GPT-OSS 120B + GPT-OSS 20B)",
     tier: "Free tier",
     monthlyCost: "$0",
     url: "https://groq.com",
-    note: "Sub-second latency on Llama 3.3 70B. Ridiculous quality-to-cost ratio.",
+    note: "Sub-second latency on GPT-OSS 120B. Ridiculous quality-to-cost ratio.",
   },
   {
     service: "Cohere",
