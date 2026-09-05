@@ -11,6 +11,9 @@ node_modules/
 /data/
 /data.zip
 
+# generated archives
+/portfolio.zip
+
 # next.js
 /.next/
 /out/
@@ -39,3 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 COMMIT_MSG.tmp
+
+# cPanel deploy bundle
+/deploy-namecheap/
+/deploy-namecheap.zip

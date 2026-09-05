@@ -5,21 +5,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Theme-aware tokens — driven by CSS variables (see globals.css).
+        // Light is the default (:root); `.dark`/`.theme-dark` swap the values.
+        // This keeps every opacity modifier (bg-signal/10, etc.) working.
         ink: {
-          DEFAULT: "#0a0a0a",
-          alt: "#0e0e0e",
-          card: "#131313",
-          elev: "#1a1a1a",
-          line: "#262626",
+          DEFAULT: "rgb(var(--ink) / <alpha-value>)",
+          alt: "rgb(var(--ink-alt) / <alpha-value>)",
+          card: "rgb(var(--ink-card) / <alpha-value>)",
+          elev: "rgb(var(--ink-elev) / <alpha-value>)",
+          line: "rgb(var(--ink-line) / <alpha-value>)",
         },
         paper: {
-          DEFAULT: "#fafaf9",
-          muted: "#a1a1aa",
-          dim: "#71717a",
+          DEFAULT: "rgb(var(--paper) / <alpha-value>)",
+          muted: "rgb(var(--paper-muted) / <alpha-value>)",
+          dim: "rgb(var(--paper-dim) / <alpha-value>)",
         },
         signal: {
-          DEFAULT: "#00ff88",
-          dim: "#00cc6a",
+          DEFAULT: "rgb(var(--signal) / <alpha-value>)",
+          dim: "rgb(var(--signal-dim) / <alpha-value>)",
           glow: "rgba(0, 255, 136, 0.18)",
           fade: "rgba(0, 255, 136, 0.06)",
         },
