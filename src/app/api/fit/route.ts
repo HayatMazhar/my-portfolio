@@ -40,6 +40,63 @@ Output STRICT JSON (no markdown, no preamble) matching this shape:
 
 Return ONLY the JSON. No code fences. No commentary.`;
 
+function jsonError(message: string, status: number) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+/** Groq rejects the request when the model's own output is not valid JSON. */
+function isJsonValidateFailure(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "status" in err &&
+    (err as { status?: number }).status === 400 &&
+    JSON.stringify((err as { error?: unknown }).error ?? "").includes(
+      "json_validate_failed",
+    )
+  );
+}
+
+function providerErrorStatus(err: unknown): number {
+  const status =
+    typeof err === "object" && err !== null && "status" in err
+      ? (err as { status?: number }).status
+      : undefined;
+  return status === 429 || status === 413 ? 429 : 502;
+}
+
+/** Provider errors carry internal details, so map them to something readable. */
+function friendlyProviderError(err: unknown): string {
+  const status = providerErrorStatus(err);
+  if (status === 429) {
+    return "The AI service is rate limited right now. Wait a moment and try again.";
+  }
+  return "The AI service could not complete the report. Please try again.";
+}
+
+function nonEmpty(value: unknown): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+/** Every field the report UI renders must be present before it is worth showing. */
+function isCompleteReport(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const report = value as Record<string, unknown>;
+  return (
+    nonEmpty(report.overallFit) &&
+    typeof report.fitScore === "number" &&
+    nonEmpty(report.headline) &&
+    Array.isArray(report.strengths) &&
+    report.strengths.length > 0 &&
+    Array.isArray(report.gaps) &&
+    nonEmpty(report.tailoredPitch) &&
+    nonEmpty(report.suggestedNextStep)
+  );
+}
+
 export async function POST(req: Request) {
   const limited = rateLimit(req, "fit", { limit: 10, windowMs: 60_000 });
   if (limited) return limited;
@@ -80,42 +137,53 @@ export async function POST(req: Request) {
 
   const groq = new Groq({ apiKey: groqKey });
 
-  try {
-    const completion = await groq.chat.completions.create({
-      model: GROQ_CHAT_MODEL,
-      temperature: 0.3,
-      max_tokens: 1500,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `MAZHAR'S CV CONTEXT (for grounding):\n\n${CV_CONTEXT}\n\n---\n\nJOB DESCRIPTION:\n\n${jd}\n\n---\n\nProduce the JSON fit report.`,
-        },
-      ],
-    });
-
-    const raw = completion.choices[0]?.message?.content ?? "{}";
-    let parsed: unknown;
+  // The model occasionally emits malformed JSON (Groq rejects it outright) or
+  // stops short of the trailing fields. Both are one-off sampling failures, so
+  // a single retry recovers rather than showing the recruiter a broken report.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const isLastAttempt = attempt === 1;
     try {
-      parsed = JSON.parse(raw);
-    } catch {
-      return new Response(
-        JSON.stringify({
-          error: "AI returned malformed JSON. Please try again.",
-        }),
-        { status: 502, headers: { "Content-Type": "application/json" } },
-      );
-    }
+      const completion = await groq.chat.completions.create({
+        model: GROQ_CHAT_MODEL,
+        temperature: 0.3,
+        // Reasoning eats the completion budget before any JSON is written, and
+        // "low" keeps a full report comfortably under the cap.
+        reasoning_effort: "low",
+        max_completion_tokens: 4000,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `MAZHAR'S CV CONTEXT (for grounding):\n\n${CV_CONTEXT}\n\n---\n\nJOB DESCRIPTION:\n\n${jd}\n\n---\n\nProduce the JSON fit report.`,
+          },
+        ],
+      });
 
-    return new Response(JSON.stringify(parsed), {
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unexpected error";
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+      const choice = completion.choices[0];
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(choice?.message?.content ?? "{}");
+      } catch {
+        if (!isLastAttempt) continue;
+        return jsonError("AI returned malformed JSON. Please try again.", 502);
+      }
+
+      // Hitting the token cap still yields parseable JSON, just with the
+      // trailing fields dropped — which rendered as an empty pitch card.
+      if (choice?.finish_reason === "length" || !isCompleteReport(parsed)) {
+        if (!isLastAttempt) continue;
+        return jsonError("The report came back incomplete. Please try again.", 502);
+      }
+
+      return new Response(JSON.stringify(parsed), {
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      if (isJsonValidateFailure(err) && !isLastAttempt) continue;
+      return jsonError(friendlyProviderError(err), providerErrorStatus(err));
+    }
   }
+
+  return jsonError("The report came back incomplete. Please try again.", 502);
 }

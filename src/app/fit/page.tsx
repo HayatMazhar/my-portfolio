@@ -384,12 +384,14 @@ export default function FitPage() {
               )}
 
               {/* Pitch */}
-              <div className="mt-10 rounded-2xl border border-signal/20 bg-signal/[0.04] p-7">
-                <p className="meta mb-3">Tailored opening pitch</p>
-                <p className="text-lg leading-relaxed text-paper">
-                  &ldquo;{report.tailoredPitch}&rdquo;
-                </p>
-              </div>
+              {report.tailoredPitch?.trim() && (
+                <div className="mt-10 rounded-2xl border border-signal/20 bg-signal/[0.04] p-7">
+                  <p className="meta mb-3">Tailored opening pitch</p>
+                  <p className="text-lg leading-relaxed text-paper">
+                    &ldquo;{report.tailoredPitch}&rdquo;
+                  </p>
+                </div>
+              )}
 
               {/* Next step */}
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-ink-line bg-ink-card p-5">
@@ -398,7 +400,8 @@ export default function FitPage() {
                     Suggested next step
                   </p>
                   <p className="mt-1 text-paper">
-                    {report.suggestedNextStep}
+                    {report.suggestedNextStep?.trim() ||
+                      "Book a short call to talk through the fit."}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
