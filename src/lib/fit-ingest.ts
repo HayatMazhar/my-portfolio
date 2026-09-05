@@ -2,6 +2,9 @@ import dns from "node:dns/promises";
 import net from "node:net";
 import mammoth from "mammoth";
 import { extractText } from "unpdf";
+import { isPrivateIp, looksLikeSingleUrl } from "./fit-url-guards";
+
+export { looksLikeSingleUrl };
 
 export const FIT_JD_MAX_CHARS = 8000;
 const FETCH_TIMEOUT_MS = 12_000;
@@ -15,39 +18,6 @@ const BLOCKED_HOSTS = new Set([
   "metadata.google.internal",
   "metadata.google.com",
 ]);
-
-export function looksLikeSingleUrl(text: string): string | null {
-  const trimmed = text.trim();
-  if (!/^https?:\/\/\S+$/i.test(trimmed)) return null;
-  try {
-    const url = new URL(trimmed);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    return url.toString();
-  } catch {
-    return null;
-  }
-}
-
-function isPrivateIp(ip: string): boolean {
-  if (net.isIP(ip) === 4) {
-    const [a, b] = ip.split(".").map(Number);
-    if (a === 10 || a === 127 || a === 0) return true;
-    if (a === 169 && b === 254) return true;
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 192 && b === 168) return true;
-    return false;
-  }
-  if (net.isIP(ip) === 6) {
-    const lower = ip.toLowerCase();
-    if (lower === "::1" || lower === "::") return true;
-    if (lower.startsWith("fc") || lower.startsWith("fd")) return true;
-    if (lower.startsWith("fe80")) return true;
-    const mapped = lower.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    if (mapped) return isPrivateIp(mapped[1]);
-    return false;
-  }
-  return true;
-}
 
 async function assertPublicHttpsUrl(raw: string): Promise<URL> {
   let url: URL;

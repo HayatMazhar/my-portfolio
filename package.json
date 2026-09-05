@@ -7,14 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.32.1",
     "@google/generative-ai": "^0.24.1",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
-    "@next/mdx": "^16.2.6",
+    "@next/mdx": "14.2.18",
     "@pinecone-database/pinecone": "^7.2.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
@@ -23,13 +24,14 @@
     "framer-motion": "^11.11.17",
     "groq-sdk": "^1.2.0",
     "lucide-react": "^0.460.0",
+    "mammoth": "^1.12.2",
     "next": "14.2.18",
     "next-themes": "^0.4.6",
-    "openai": "^6.38.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "rehype-highlight": "^7.0.2",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "unpdf": "^1.8.1"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.11",
@@ -41,6 +43,7 @@
     "eslint-config-next": "14.2.18",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
   }
 }
