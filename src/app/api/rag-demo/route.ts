@@ -4,6 +4,7 @@ import { CohereClient } from "cohere-ai";
 import Groq from "groq-sdk";
 import { CORPUS_NAMESPACE, PINECONE_INDEX_NAME } from "@/data/rag-corpus";
 import { GROQ_ALLOWED_MODELS, GROQ_CHAT_MODEL } from "@/lib/groq-models";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +21,9 @@ interface RetrievedChunk {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "rag-demo", { limit: 15, windowMs: 60_000 });
+  if (limited) return limited;
+
   const pineconeKey = process.env.PINECONE_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;

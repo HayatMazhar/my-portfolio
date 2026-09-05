@@ -1,6 +1,7 @@
 import Groq from "groq-sdk";
 import { CV_CONTEXT } from "@/data/cv";
 import { GROQ_CHAT_MODEL } from "@/lib/groq-models";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,6 +12,9 @@ interface ClientMessage {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "chat", { limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const groqKey = process.env.GROQ_API_KEY;
 
   if (!groqKey) {

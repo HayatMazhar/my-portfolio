@@ -19,6 +19,7 @@ import {
 import { PERSONAL } from "@/data/cv";
 import { cn } from "@/lib/utils";
 import BookCall from "@/components/BookCall";
+import JdComposer, { resolveJdText } from "@/components/JdComposer";
 
 interface FitReport {
   overallFit: "strong" | "good" | "partial" | "weak";
@@ -99,16 +100,32 @@ export default function FitPage() {
     );
     await Promise.all(
       targets.map(async (t) => {
-        const result = await analyzeOne(t.jd);
-        setComparisons((prev) =>
-          prev.map((c) =>
-            c.id === t.id
-              ? "error" in result
-                ? { ...c, loading: false, error: result.error }
-                : { ...c, loading: false, report: result }
-              : c,
-          ),
-        );
+        try {
+          const jdText = await resolveJdText(t.jd);
+          if (jdText !== t.jd) {
+            setComparisons((prev) =>
+              prev.map((c) => (c.id === t.id ? { ...c, jd: jdText } : c)),
+            );
+          }
+          const result = await analyzeOne(jdText);
+          setComparisons((prev) =>
+            prev.map((c) =>
+              c.id === t.id
+                ? "error" in result
+                  ? { ...c, loading: false, error: result.error }
+                  : { ...c, loading: false, report: result }
+                : c,
+            ),
+          );
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Could not read that JD.";
+          setComparisons((prev) =>
+            prev.map((c) =>
+              c.id === t.id ? { ...c, loading: false, error: message } : c,
+            ),
+          );
+        }
       }),
     );
   }
@@ -135,10 +152,12 @@ export default function FitPage() {
     setReport(null);
 
     try {
+      const jdText = await resolveJdText(jd);
+      if (jdText !== jd) setJd(jdText);
       const res = await fetch("/api/fit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jd }),
+        body: JSON.stringify({ jd: jdText }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -170,7 +189,7 @@ export default function FitPage() {
             <span>AI Fit Analyser</span>
           </div>
           <h1 className="display-1 mt-5">
-            Paste a job description.
+            Paste a JD, a link, or a document.
             <br />
             <span className="display-italic text-signal/90">
               I&apos;ll tell you honestly
@@ -178,8 +197,9 @@ export default function FitPage() {
             if I&apos;m a fit.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-paper-muted">
-            An AI compares the JD against my full CV and produces a structured
-            fit report: strengths, gaps (yes, real gaps — not just spin), a
+            Drop in the posting as text, a public URL, or a PDF/DOCX. An AI
+            compares it against my full CV and produces a structured fit
+            report: strengths, gaps (yes, real gaps — not just spin), a
             tailored pitch, and a suggested next step. Powered by GPT-OSS 120B
             on Groq. Takes ~10 seconds. Free.
           </p>
@@ -229,26 +249,14 @@ export default function FitPage() {
         <section className="mt-12">
           <div className="flex items-center justify-between">
             <label className="meta">Job description</label>
-            <button
-              type="button"
-              onClick={() => setJd(SAMPLE_JD)}
-              className="font-mono text-[10px] uppercase tracking-widest text-paper-dim transition hover:text-signal"
-            >
-              Load sample JD
-            </button>
           </div>
-          <textarea
+          <JdComposer
             value={jd}
-            onChange={(e) => setJd(e.target.value)}
-            placeholder="Paste the full JD here — required skills, responsibilities, nice-to-haves, the lot."
-            rows={12}
-            maxLength={8000}
-            className="mt-3 w-full resize-y rounded-xl border border-ink-line bg-ink-card p-4 text-sm leading-relaxed text-paper placeholder:text-paper-dim focus:border-signal/40 focus:outline-none focus:ring-1 focus:ring-signal/20"
+            onChange={setJd}
+            sampleLabel="Load sample JD"
+            onSample={() => setJd(SAMPLE_JD)}
           />
-          <div className="mt-2 flex items-center justify-between text-[11px] text-paper-dim">
-            <span className="font-mono">
-              {jd.length.toLocaleString()} / 8,000 chars
-            </span>
+          <div className="mt-3 flex justify-end">
             <button
               type="button"
               onClick={analyze}
@@ -418,8 +426,9 @@ export default function FitPage() {
         {/* Help text */}
         {!report && !error && (
           <p className="mt-8 text-center text-sm text-paper-dim">
-            Tip: include the full JD — requirements, nice-to-haves, the lot. The
-            more context, the sharper the analysis.
+            Tip: a public careers-page URL or a PDF/DOCX works. LinkedIn and
+            some boards hide the posting — paste the text if Fetch comes back
+            empty.
           </p>
         )}
         </>
@@ -452,8 +461,8 @@ function ComparePanel({
         <div>
           <p className="meta">Side-by-side mode</p>
           <p className="mt-1.5 text-sm text-paper-muted">
-            Paste {comparisons.length} JDs. I&apos;ll score them all in parallel
-            and surface the strongest match.
+            Paste {comparisons.length} JDs as text, a public URL, or a file. I&apos;ll
+            score them all in parallel and surface the strongest match.
           </p>
         </div>
         <div className="flex gap-2">
@@ -516,17 +525,11 @@ function ComparePanel({
                 </button>
               )}
             </div>
-            <textarea
+            <JdComposer
+              compact
               value={c.jd}
-              onChange={(e) => onUpdate(c.id, { jd: e.target.value })}
-              placeholder="Paste JD here…"
-              rows={8}
-              maxLength={8000}
-              className="mt-2 w-full resize-y rounded-lg border border-ink-line bg-ink p-3 text-sm text-paper placeholder:text-paper-dim focus:border-signal/40 focus:outline-none"
+              onChange={(jd) => onUpdate(c.id, { jd })}
             />
-            <p className="mt-1 font-mono text-[10px] text-paper-dim">
-              {c.jd.length.toLocaleString()} chars
-            </p>
             {c.error && (
               <p className="mt-2 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
                 {c.error}

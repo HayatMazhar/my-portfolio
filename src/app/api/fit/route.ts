@@ -1,6 +1,8 @@
 import Groq from "groq-sdk";
 import { RAG_CORPUS } from "@/data/rag-corpus";
 import { GROQ_CHAT_MODEL } from "@/lib/groq-models";
+import { FIT_JD_MAX_CHARS } from "@/lib/fit-ingest";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,6 +41,9 @@ Output STRICT JSON (no markdown, no preamble) matching this shape:
 Return ONLY the JSON. No code fences. No commentary.`;
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "fit", { limit: 10, windowMs: 60_000 });
+  if (limited) return limited;
+
   const groqKey = process.env.GROQ_API_KEY;
   if (!groqKey) {
     return new Response(
@@ -64,10 +69,10 @@ export async function POST(req: Request) {
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
-  if (jd.length > 8000) {
+  if (jd.length > FIT_JD_MAX_CHARS) {
     return new Response(
       JSON.stringify({
-        error: "Job description too long (max 8,000 characters).",
+        error: `Job description too long (max ${FIT_JD_MAX_CHARS.toLocaleString()} characters).`,
       }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
