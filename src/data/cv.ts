@@ -577,6 +577,591 @@ export const PROJECT_STUDIES: Record<string, ProjectStudy> = {
       "Frictionless setup (copy-paste config) is what turns a demo into something people actually try.",
     ],
   },
+
+  "arabic-english-translation-assistant": {
+    slug: "arabic-english-translation-assistant",
+    tagline:
+      "Bilingual statistical reports in 4 hours instead of 3 days — with zero terminology drift.",
+    before:
+      "Bilingual reports needed 2–3 days of manual translation, and statistical terminology drifted between the Arabic and English versions — the same concept rendered three different ways across a single publication.",
+    after:
+      "A GPT-4 translation copilot with a SCAD-specific glossary and a side-by-side reviewer cut turnaround to 4 hours, locked 200+ recurring terms to a single agreed rendering, and is now used for every quarterly release.",
+    timeline: [
+      {
+        phase: "Glossary first",
+        period: "Phase 1",
+        story:
+          "Built the SCAD-specific glossary (UN SDG terms, demographic taxonomies) before any translation code — because terminology consistency, not raw translation, was the real problem.",
+      },
+      {
+        phase: "Translation copilot",
+        period: "Phase 2",
+        story:
+          "Wrapped GPT-4 with the glossary as enforced context so agreed terms are used verbatim, and built a side-by-side reviewer so a human owns the final wording.",
+      },
+      {
+        phase: "Adoption",
+        period: "Phase 3",
+        story:
+          "Rolled it into the publications team's quarterly workflow. Human-in-the-loop review kept trust high while the speedup did the convincing.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Glossary-enforced translation over raw model output",
+        why: "Free translation drifts on domain terms. Injecting an agreed glossary is what eliminated drift across 200+ recurring statistical terms.",
+      },
+      {
+        title: "Side-by-side human review, not full automation",
+        why: "Published government statistics can't ship on model confidence alone. A reviewer UI made the speedup safe to adopt.",
+      },
+    ],
+    lessons: [
+      "For domain translation, terminology consistency matters more than fluency.",
+      "A glossary is cheaper and more reliable than fine-tuning for locking terms.",
+      "Keep a human on the final wording when the output is published under an institution's name.",
+    ],
+  },
+
+  "smart-meeting-summariser": {
+    slug: "smart-meeting-summariser",
+    tagline:
+      "Turning Teams transcripts into bilingual minutes and tracked action items — so decisions stop falling through the cracks.",
+    before:
+      "Meeting minutes were inconsistent and action items routinely got lost across departments — follow-through sat around 60%.",
+    after:
+      "A pipeline summarises Teams transcripts in Arabic and English, extracts owners and deadlines, and posts structured items to Planner. Adopted across 6 departments and ~120 meetings/month, it cut minute-writing time 85% and lifted action-item follow-through to 92%.",
+    timeline: [
+      {
+        phase: "Transcript ingestion",
+        period: "Phase 1",
+        story:
+          "Wired Whisper + Teams transcripts into a clean pipeline, handling the reality of mixed Arabic/English speech in the same meeting.",
+      },
+      {
+        phase: "Structured extraction",
+        period: "Phase 2",
+        story:
+          "Moved from a prose summary to structured owner + deadline extraction — the difference between 'nice notes' and something that actually drives follow-through.",
+      },
+      {
+        phase: "Close the loop into Planner",
+        period: "Phase 3",
+        story:
+          "Posted extracted action items straight into Planner via Graph/Power Automate, so the output lands where the work already happens.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Extract structured action items, not just summaries",
+        why: "A summary is read once and forgotten. Owner + deadline items posted to Planner are what moved follow-through from ~60% to ~92%.",
+      },
+      {
+        title: "Bilingual by default",
+        why: "Meetings mix Arabic and English; producing both keeps every stakeholder able to act without a translation step.",
+      },
+    ],
+    lessons: [
+      "The value isn't the summary — it's the tracked action item in the tool people already use.",
+      "Push outputs to where work happens (Planner) instead of a document nobody reopens.",
+      "Handle mixed-language audio explicitly; don't assume clean single-language input.",
+    ],
+  },
+
+  "policy-document-qa-bot": {
+    slug: "policy-document-qa-bot",
+    tagline:
+      "Answering the same 50 HR questions — with a cited policy clause every time — so people stop emailing HR.",
+    before:
+      "HR answered the same ~50 policy questions over and over, and staff couldn't navigate the sprawling policy-PDF library on their own.",
+    after:
+      "A slim RAG pipeline over the policy library gives citation-first answers with an escalation hand-off to a human. It has deflected ~70% of repetitive HR enquiries and run for over a year with no human-curated FAQ.",
+    timeline: [
+      {
+        phase: "Index the library",
+        period: "Phase 1",
+        story:
+          "Chunked and indexed the policy PDFs with Azure AI Search — a focused corpus, not the whole intranet, to keep answers precise.",
+      },
+      {
+        phase: "Citation-first answers",
+        period: "Phase 2",
+        story:
+          "Made every answer carry the specific policy clause and page number, so staff (and HR) can verify rather than trust blindly.",
+      },
+      {
+        phase: "Escalation hand-off",
+        period: "Phase 3",
+        story:
+          "Added a clean hand-off to a human HR contact for anything outside the library — the bot knows its limits.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Citation-first responses",
+        why: "For HR/policy questions, an answer without a source clause is a liability. Cited clauses are what made it trustworthy enough to replace the FAQ.",
+      },
+      {
+        title: "A narrow corpus over a broad one",
+        why: "Scoping retrieval to the policy library kept precision high and hallucinations near zero, rather than diluting it across all intranet content.",
+      },
+    ],
+    lessons: [
+      "For policy Q&A, a cited clause beats a fluent paragraph every time.",
+      "A tight, well-scoped corpus outperforms a large noisy one.",
+      "An honest escalation path is what lets you safely deflect the routine 70%.",
+    ],
+  },
+
+  "email-triage-copilot": {
+    slug: "email-triage-copilot",
+    tagline:
+      "An Outlook copilot that classifies, drafts, and learns — giving senior staff ~5 hours a week back.",
+    before:
+      "Senior team members spent 60–90 minutes a day classifying and replying to repetitive stakeholder emails.",
+    after:
+      "An Outlook add-in classifies incoming mail by intent, drafts a tone-matched reply, and learns from accept/reject signals. It saved ~5 hours/week per user, reached a 78% draft-acceptance rate, and held 91% triage accuracy across 12 categories.",
+    timeline: [
+      {
+        phase: "Intent classification",
+        period: "Phase 1",
+        story:
+          "Built a 12-category intent classifier for incoming mail — triage first, because routing the email correctly is half the time saved.",
+      },
+      {
+        phase: "Tone-matched drafting",
+        period: "Phase 2",
+        story:
+          "Generated reply drafts that match the user's tone, surfaced in Outlook where they already work rather than a separate app.",
+      },
+      {
+        phase: "Learn from accept/reject",
+        period: "Phase 3",
+        story:
+          "Fed accept/reject signals back in so drafts improved over the first two weeks — acceptance climbed to 78%.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Draft, don't send",
+        why: "Keeping a human in the send loop is what makes an email assistant safe. The copilot proposes; the person approves.",
+      },
+      {
+        title: "Live inside Outlook",
+        why: "Adoption dies if people have to leave their inbox. An add-in met users where they already are.",
+      },
+    ],
+    lessons: [
+      "Never auto-send. A tone-matched draft with a human approving is the sweet spot.",
+      "Meet users in their existing tool or adoption collapses.",
+      "Accept/reject feedback is a cheap, powerful signal — capture it from day one.",
+    ],
+  },
+
+  "code-review-assistant": {
+    slug: "code-review-assistant",
+    tagline:
+      "A GitHub Action that catches ~40% of bugs before a human ever opens the PR.",
+    before:
+      "Code reviews were inconsistent across teams, and common security and performance issues kept slipping past human reviewers.",
+    after:
+      "A GitHub Action posts inline review comments — security checks, async/await pitfalls, EF Core anti-patterns, and a prompt-injection scanner for AI-touching files. It catches ~40% of bugs before human review across 6 repos, cut PR cycle time from 2.5 days to 1.1, and surfaced 14 latent SQL-injection and async issues in the first month.",
+    timeline: [
+      {
+        phase: "Targeted rule set",
+        period: "Phase 1",
+        story:
+          "Focused the reviewer on the issues that actually recur in .NET repos — security, async/await, EF Core — instead of generic style nagging.",
+      },
+      {
+        phase: "Inline PR comments",
+        period: "Phase 2",
+        story:
+          "Wired it as a GitHub Action posting inline comments via Octokit, so feedback lands exactly on the offending line during review.",
+      },
+      {
+        phase: "Prompt-injection scanning",
+        period: "Phase 3",
+        story:
+          "Added a prompt-injection scanner for any AI-touching files — reviewing the new class of risk that AI features introduce.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Domain-specific checks over generic linting",
+        why: "Roslyn + targeted prompts for real .NET pitfalls caught meaningful bugs; a generic 'review this' prompt would have produced noise reviewers ignore.",
+      },
+      {
+        title: "Augment human review, don't replace it",
+        why: "The Action handles the repetitive 40% so humans spend their attention on design and intent — the things models are worst at.",
+      },
+    ],
+    lessons: [
+      "A focused rule set that catches real bugs beats a broad one that generates noise.",
+      "Put the feedback inline on the line, or it won't get acted on.",
+      "AI features need their own review checks — prompt injection is now part of code review.",
+    ],
+  },
+
+  "data-quality-anomaly-detector": {
+    slug: "data-quality-anomaly-detector",
+    tagline:
+      "Classical stats to flag it, an LLM to judge it — catching unit-of-measure errors before they hit published statistics.",
+    before:
+      "Monthly economic-indicator submissions occasionally contained unit-of-measure errors that weren't caught until after publication.",
+    after:
+      "A hybrid pipeline flags suspect rows with classical outlier detection, then GPT-4 reasons about whether they're real changes or likely data-entry mistakes. It caught 23 publication-blocking issues over 9 months, cut false positives 60% vs the old threshold-only system, and drove data-quality publication delays from 4/year to 0.",
+    timeline: [
+      {
+        phase: "Statistical flagging",
+        period: "Phase 1",
+        story:
+          "Kept classical outlier detection as the first pass — cheap, explainable, and good at surfacing suspect rows.",
+      },
+      {
+        phase: "LLM adjudication",
+        period: "Phase 2",
+        story:
+          "Layered GPT-4 reasoning on top to distinguish a genuine economic shift from a decimal-point or unit error — the judgement a pure threshold can't make.",
+      },
+      {
+        phase: "Pre-publication gate",
+        period: "Phase 3",
+        story:
+          "Wired it into the pre-release workflow so issues are caught before publication, not discovered weeks later in the wild.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Hybrid stats + LLM, not either alone",
+        why: "Thresholds over-flag; an LLM alone is expensive and unfocused. Stats narrow the candidates, the LLM adds judgement — cutting false positives 60%.",
+      },
+      {
+        title: "Explain every flag",
+        why: "Analysts need to know why a row was flagged to act on it. Pairing the statistical signal with the LLM's reasoning made flags actionable.",
+      },
+    ],
+    lessons: [
+      "Use classical methods for recall and the LLM for judgement — don't make the model do both.",
+      "False positives are the real enemy of a data-quality tool; tune for them.",
+      "Catching an error before publication is worth far more than detecting it after.",
+    ],
+  },
+
+  "survey-open-ended-coder": {
+    slug: "survey-open-ended-coder",
+    tagline:
+      "Coding 30,000+ Arabic open-ended responses in 4 days instead of 6 weeks — at 92% agreement with humans.",
+    before:
+      "Coding 30,000+ Arabic open-ended survey responses to a fixed taxonomy took a team of four about six weeks.",
+    after:
+      "An Arabic-first, few-shot LLM coder with confidence thresholds auto-codes the confident majority and routes the rest to a human-in-the-loop UI. It cut the cycle from 6 weeks to 4 days at 92% agreement with the human gold standard.",
+    timeline: [
+      {
+        phase: "Taxonomy + few-shot",
+        period: "Phase 1",
+        story:
+          "Encoded the fixed taxonomy as few-shot examples, Arabic-first, so the model codes to the exact categories the survey team uses.",
+      },
+      {
+        phase: "Confidence thresholds",
+        period: "Phase 2",
+        story:
+          "Auto-coded only high-confidence responses and routed the rest to a review UI — automation where it's safe, humans where it's not.",
+      },
+      {
+        phase: "Human-in-the-loop review",
+        period: "Phase 3",
+        story:
+          "Focused the four-person team on edge cases instead of the full 30,000, which is where the six weeks used to go.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Confidence-gated automation",
+        why: "Auto-coding everything would be unsafe; reviewing everything is slow. Thresholds let the model handle the bulk while humans own the ambiguous tail.",
+      },
+      {
+        title: "Arabic-first prompting",
+        why: "Treating Arabic as the primary language, not a translation target, is what held agreement at 92% on real responses.",
+      },
+    ],
+    lessons: [
+      "Confidence thresholds turn 'risky automation' into 'safe automation plus focused review'.",
+      "Measure against a human gold standard or you can't claim accuracy.",
+      "For Arabic content, design Arabic-first rather than translating to English underneath.",
+    ],
+  },
+
+  "smart-form-validator": {
+    slug: "smart-form-validator",
+    tagline:
+      "Standardising messy Arabic names and addresses in-line — lifting record-linkage match rate from 72% to 94%.",
+    before:
+      "Field-collected forms had inconsistent Arabic name and address formatting that broke downstream record linkage.",
+    after:
+      "A light GPT-3.5 normaliser with a transliteration model standardises names, splits address components, and validates against the national address registry — in-line on submit at sub-200ms p95. Match rate rose from 72% to 94% and eight brittle regex rule-sets were replaced by one model plus a small ruleset.",
+    timeline: [
+      {
+        phase: "Normalisation model",
+        period: "Phase 1",
+        story:
+          "Built a light normaliser + transliteration step to standardise Arabic names and split address components consistently.",
+      },
+      {
+        phase: "Registry validation",
+        period: "Phase 2",
+        story:
+          "Validated standardised addresses against the national address registry so downstream linkage has clean, verified inputs.",
+      },
+      {
+        phase: "In-line at submit",
+        period: "Phase 3",
+        story:
+          "Ran the whole thing in-line on form submit at sub-200ms p95 — fixing data at the source instead of cleaning it later.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Fix data at entry, not downstream",
+        why: "Cleaning at submit time stops bad records from ever entering the pipeline, which is why linkage jumped 22 points.",
+      },
+      {
+        title: "One model + small ruleset over 8 regex systems",
+        why: "The brittle regex rule-sets were unmaintainable. A model plus a thin ruleset was more accurate and far easier to keep working.",
+      },
+    ],
+    lessons: [
+      "The cheapest place to fix data quality is the moment of entry.",
+      "A small model can retire a pile of brittle regex — and be easier to maintain.",
+      "Latency budgets matter for in-line validation; sub-200ms keeps it invisible to users.",
+    ],
+  },
+
+  "knowledge-base-auto-tagger": {
+    slug: "knowledge-base-auto-tagger",
+    tagline:
+      "Tagging 40,000+ documents in 36 hours — and making search 3.4× more likely to surface the right one.",
+    before:
+      "An internal SharePoint held 40,000+ documents with inconsistent or missing metadata, which made search effectively useless.",
+    after:
+      "A batch embedding + classification pipeline assigns SDG topics, year, language, and confidentiality tier, and suggests related documents. It tagged 40,000+ documents in under 36 hours, lifted search click-through-to-relevant by 3.4×, and now powers the retrieval filters in the main RAG system.",
+    timeline: [
+      {
+        phase: "Batch embedding",
+        period: "Phase 1",
+        story:
+          "Embedded the whole corpus in batch, the foundation for both classification and related-document suggestions.",
+      },
+      {
+        phase: "Multi-facet classification",
+        period: "Phase 2",
+        story:
+          "Classified each document across SDG topic, year, language, and confidentiality tier — the facets that make filtered search actually work.",
+      },
+      {
+        phase: "Feed the RAG filters",
+        period: "Phase 3",
+        story:
+          "Exposed the tags as retrieval filters in the main document-intelligence system, so this pipeline quietly improved the flagship RAG product too.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Metadata as an enabler for retrieval",
+        why: "Good tags aren't cosmetic — they became the filters that sharpen the main RAG system's retrieval, so the work compounded.",
+      },
+      {
+        title: "Confidentiality tier as a first-class facet",
+        why: "In a government context, classifying sensitivity up front is what lets downstream systems enforce access safely.",
+      },
+    ],
+    lessons: [
+      "Metadata quality is a retrieval feature, not an afterthought.",
+      "Batch-tagging an existing corpus can unlock other AI systems that depend on it.",
+      "Classify sensitivity early so access control has something to enforce.",
+    ],
+  },
+
+  "exec-dashboard-narrator": {
+    slug: "exec-dashboard-narrator",
+    tagline:
+      "Bilingual executive briefs on the morning of the review — grounded in the actual numbers, with zero hallucinated figures.",
+    before:
+      "Leadership wanted prose commentary on top of Power BI dashboards — month-over-month narrative, not just charts — but writing it lagged the data by two days.",
+    after:
+      "A scheduled job reads dashboard datasets, runs significance tests, and writes a four-paragraph bilingual executive brief grounded in the real numbers. Briefs now land the morning of the monthly review, it's the default lead-in to the executive deck, and there have been zero hallucinated numbers in 9 months.",
+    timeline: [
+      {
+        phase: "Read the data, test significance",
+        period: "Phase 1",
+        story:
+          "Started from the datasets, not the charts — running significance tests so the narrative highlights changes that actually matter.",
+      },
+      {
+        phase: "Templated numbers, generated prose",
+        period: "Phase 2",
+        story:
+          "Templated every figure and let the model write only the connective prose — the design choice that guarantees no invented numbers.",
+      },
+      {
+        phase: "Bilingual, on schedule",
+        period: "Phase 3",
+        story:
+          "Produced Arabic + English briefs on a schedule so they're ready the morning of the review instead of two days later.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Template the numbers, generate only the words",
+        why: "LLMs invent figures. Injecting templated, verified numbers and letting the model write only prose is what delivered zero hallucinated numbers in 9 months.",
+      },
+      {
+        title: "Significance testing before narration",
+        why: "Without it, the brief would narrate noise. Testing first means the commentary focuses on genuinely meaningful movements.",
+      },
+    ],
+    lessons: [
+      "For number-heavy generation, template the numbers and let the model handle only language.",
+      "Run significance tests first so you narrate signal, not noise.",
+      "'Zero hallucinated numbers' is an architecture choice, not a prompt.",
+    ],
+  },
+
+  "service-request-router": {
+    slug: "service-request-router",
+    tagline:
+      "Routing bilingual citizen requests to the right team — cutting misrouting from 28% to 6%.",
+    before:
+      "Bilingual citizen requests were misrouted about 28% of the time, causing SLA breaches across labour-service teams.",
+    after:
+      "An intent + topic classifier routes each request to one of 22 specialist teams with a confidence-gated escalation path. Misrouting dropped from 28% to 6%, first-touch resolution improved 19 points, and labour-services SLA breaches fell 41%.",
+    timeline: [
+      {
+        phase: "Intent + topic classification",
+        period: "Phase 1",
+        story:
+          "Built an Arabic-capable classifier over the request text to predict intent and topic across 22 specialist teams.",
+      },
+      {
+        phase: "Confidence-gated routing",
+        period: "Phase 2",
+        story:
+          "Auto-routed confident predictions and escalated uncertain ones, so the tail of ambiguous requests didn't degrade into misroutes.",
+      },
+      {
+        phase: "Measure against SLAs",
+        period: "Phase 3",
+        story:
+          "Tracked misrouting, first-touch resolution, and SLA breaches — the metrics leadership actually feels — to prove the impact.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Confidence-gated escalation",
+        why: "Forcing a guess on low-confidence requests is what caused misroutes. Escalating the uncertain ones is what pushed misrouting down to 6%.",
+      },
+      {
+        title: "Bilingual classification from the start",
+        why: "Citizen requests arrive in Arabic and English; handling both natively was table stakes for accurate routing.",
+      },
+    ],
+    lessons: [
+      "Let the classifier abstain — a confidence gate beats a forced wrong guess.",
+      "Tie the model's metrics to the ones leadership feels (SLA breaches), not just accuracy.",
+      "Routing quality compounds: fewer misroutes lifts first-touch resolution too.",
+    ],
+  },
+
+  "social-sentiment-engine": {
+    slug: "social-sentiment-engine",
+    tagline:
+      "Near-real-time brand sentiment from 100K+ social posts a day, at under 30 seconds end-to-end.",
+    before:
+      "Marketing customers needed near-real-time brand sentiment from 100K+ daily social posts across Twitter, Facebook, and Instagram — far beyond manual monitoring.",
+    after:
+      "A streaming pipeline classifies sentiment and topic, detects spikes, and pushes alerts to subscriber dashboards. It processed 100K+ posts/day per tenant at under 30 seconds median end-to-end latency and onboarded 12 brand customers in the first quarter.",
+    timeline: [
+      {
+        phase: "Streaming ingestion",
+        period: "Phase 1",
+        story:
+          "Built a queue-backed streaming pipeline (RabbitMQ) to absorb 100K+ posts/day per tenant across three social APIs without backpressure.",
+      },
+      {
+        phase: "Sentiment + spike detection",
+        period: "Phase 2",
+        story:
+          "Classified sentiment and topic in-stream and added spike detection, because the alert on a sudden shift is what customers actually pay for.",
+      },
+      {
+        phase: "Multi-tenant dashboards",
+        period: "Phase 3",
+        story:
+          "Pushed alerts into per-tenant dashboards, onboarding 12 brand customers in the first quarter.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Streaming over batch",
+        why: "'Near-real-time' was the product. A queue-backed streaming design is what held median latency under 30 seconds at 100K+ posts/day.",
+      },
+      {
+        title: "Spike detection as the headline feature",
+        why: "Raw sentiment scores are noise; the alert on an unusual shift is the signal customers act on.",
+      },
+    ],
+    lessons: [
+      "If real-time is the promise, architect for streaming from day one — retrofitting is painful.",
+      "Detect and alert on change; a static score is rarely the thing customers need.",
+      "Design for multi-tenancy early when the product is sold per-customer.",
+    ],
+  },
+
+  "lead-scoring-model": {
+    slug: "lead-scoring-model",
+    tagline:
+      "Scoring lease applications so sales chases the right ones — +18% closed-lease yield, decisions in 8 hours not 36.",
+    before:
+      "Sales teams at OEM finance clients were chasing low-probability leases, burning cycle time on poor-fit applicants.",
+    after:
+      "A logistic-regression scoring model on application and bureau features, exposed as an API into the leasing workflow, improved closed-lease yield by 18%, cut average time-to-decision from 36 hours to 8, and was deployed at two international leasing customers.",
+    timeline: [
+      {
+        phase: "Feature engineering",
+        period: "Phase 1",
+        story:
+          "Combined application data with credit-bureau features into a signal set that actually predicts whether a lease closes.",
+      },
+      {
+        phase: "Interpretable model",
+        period: "Phase 2",
+        story:
+          "Chose logistic regression so underwriters could see why an application scored the way it did — trust matters in finance.",
+      },
+      {
+        phase: "API into the workflow",
+        period: "Phase 3",
+        story:
+          "Exposed scoring as an API embedded in the leasing workflow, so the score arrives where the decision is made — cutting time-to-decision to 8 hours.",
+      },
+    ],
+    decisions: [
+      {
+        title: "Interpretable model over a black box",
+        why: "In lease underwriting, an explainable score is adoptable; an unexplained one isn't. Logistic regression traded a little accuracy for the trust that drove adoption.",
+      },
+      {
+        title: "Score inside the existing workflow",
+        why: "A model no one sees changes nothing. Embedding it as an API in the leasing flow is what turned it into an 18% yield lift.",
+      },
+    ],
+    lessons: [
+      "In regulated finance, interpretability often beats a marginal accuracy gain.",
+      "Deliver the prediction where the decision is made, not in a separate report.",
+      "Good features beat fancy models — most of the lift came from the bureau data.",
+    ],
+  },
 };
 
 export const PROJECTS: Project[] = [
@@ -1299,7 +1884,7 @@ export const ARTICLES: Article[] = [
     date: "2025-11",
     readMin: 12,
     tags: ["RAG", "LangChain", "Azure OpenAI", "Production"],
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     slug: "prompt-engineering-patterns",
@@ -1309,7 +1894,7 @@ export const ARTICLES: Article[] = [
     date: "2025-09",
     readMin: 9,
     tags: ["GPT-4", "Prompt Engineering", "Azure OpenAI"],
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     slug: "nl-to-sql-accuracy",
@@ -1319,7 +1904,7 @@ export const ARTICLES: Article[] = [
     date: "2025-07",
     readMin: 10,
     tags: ["Semantic Kernel", "SQL", "GPT-4", "NLP"],
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     slug: "ai-cost-optimisation",
@@ -1329,7 +1914,7 @@ export const ARTICLES: Article[] = [
     date: "2025-05",
     readMin: 7,
     tags: ["Cost Optimisation", "GPT-4", "LLMOps"],
-    comingSoon: true,
+    comingSoon: false,
   },
 ];
 

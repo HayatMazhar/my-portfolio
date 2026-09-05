@@ -124,6 +124,8 @@ export default function EmbeddingExplorer() {
               viewBox="0 0 100 100"
               className="absolute inset-0 h-full w-full"
               preserveAspectRatio="none"
+              role="group"
+              aria-label="Scatter plot of CV knowledge chunks by semantic similarity. Focus a point to read it."
             >
               {/* grid */}
               <defs>
@@ -173,10 +175,22 @@ export default function EmbeddingExplorer() {
                       stroke={isActive ? color : "transparent"}
                       strokeWidth={isActive ? 1.5 : 0}
                       strokeOpacity={0.3}
-                      className="cursor-pointer transition-all"
+                      className="cursor-pointer transition-all focus:outline-none focus-visible:stroke-signal"
+                      tabIndex={0}
+                      role="button"
+                      aria-pressed={selectedId === p.id}
+                      aria-label={`${p.title}. Category ${p.category}. Activate to view this chunk.`}
                       onMouseEnter={() => setHoverId(p.id)}
                       onMouseLeave={() => setHoverId(null)}
+                      onFocus={() => setHoverId(p.id)}
+                      onBlur={() => setHoverId(null)}
                       onClick={() => setSelectedId(p.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedId(p.id);
+                        }
+                      }}
                     />
                   </g>
                 );

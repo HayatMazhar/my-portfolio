@@ -1,0 +1,58 @@
+{/* DRAFT — review before deploying. Grounded in the conversational-analytics case study; no new metrics invented. */}
+
+export const metadata = {
+  title: "Getting NL-to-SQL to 85%+ accuracy without fine-tuning",
+  description:
+    "How schema injection, intent classification, execution-aware repair loops, and a good evaluation harness got a conversational analytics platform to production-grade accuracy.",
+  date: "2025-07-15",
+  readTime: "10 min",
+  tags: ["Semantic Kernel", "SQL", "GPT-4", "NLP"],
+};
+
+# Getting NL-to-SQL to 85%+ accuracy without fine-tuning
+
+Natural-language-to-SQL demos hit 60% accuracy in an afternoon and then plateau. Getting to the 85% you need to put it in front of 200 non-technical staff — in English *and* Arabic, across 8 production databases — is a different problem entirely. Here's how we did it at SCAD, without fine-tuning a single model.
+
+---
+
+## Why not fine-tune?
+
+Fine-tuning would lock us to one schema version. Government databases change; a fine-tuned model would need retraining every time a column did. **Schema-aware context injection** means the system updates the moment the database does — zero retraining. Everything below builds on that choice.
+
+## Step 1: A semantic schema layer
+
+Before writing any LLM code, we catalogued all 8 databases — 240 tables, 3,200 columns, many cryptically named in mixed Arabic-English transliterations — and built a human-readable semantic layer over them. The model never sees `TBL_EMP_STG`; it sees "employees (staging)".
+
+Schema design turned out to matter more than prompt design. Bad column names break the model long before bad prompts do.
+
+## Step 2: Few-shot SQL generation
+
+We curated ~80 question→SQL examples covering the most common query patterns. GPT-4, given those examples plus the relevant schema slice, hit **72% accuracy** on the eval set. A solid start — but not shippable.
+
+## Step 3: The execution-aware repair loop
+
+This is the change that made it production-grade. When generated SQL throws an error, we send the error message back to the model along with the schema and let it correct itself. Most failures are predictable — a typo, an ambiguous join, a wrong column — and the model fixes them when it can see what went wrong.
+
+The repair loop lifted accuracy from 72% to **85%**. That's a bigger jump than any model swap, and it costs one extra call only on the queries that actually fail.
+
+## Step 4: Safety is not optional
+
+A natural-language interface to a production database without guardrails is an incident waiting to happen. We used:
+
+- **Read-only DB users, per role** — even a fully prompt-injected model can't mutate data.
+- **Row-level security** — no crossing tenants or seeing restricted rows.
+- **Query validation** before execution.
+
+Defence in depth, so the worst case is a bad `SELECT`, not a data breach.
+
+## Step 5: The evaluation harness
+
+None of the numbers above would mean anything without a fixed way to measure them. A graded evaluation set let us know whether each change — a new example, a prompt tweak, a schema label — actually helped. Iterating on NL-to-SQL without an eval harness is guessing; with one, it's engineering.
+
+---
+
+## What actually moved the needle
+
+Ranked by impact: the semantic schema layer, then the repair loop, then the few-shot examples. Notice the model itself isn't on that list. The accuracy came from the scaffolding around it — which is exactly why we never needed to fine-tune.
+
+Want to try it? The same grounding approach powers the [live demos on this site](/). [Ask the AI](/) anything about this build, or [reach out](/for-recruiters).

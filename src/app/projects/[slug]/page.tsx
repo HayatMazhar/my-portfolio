@@ -45,6 +45,71 @@ const CHAT_SUGGESTIONS: Record<string, string[]> = {
     "Why typed tools over a search endpoint?",
     "How do I wire it into Claude or Cursor?",
   ],
+  "arabic-english-translation-assistant": [
+    "How did you eliminate terminology drift?",
+    "Why a glossary instead of fine-tuning?",
+    "How does the reviewer stay in control?",
+  ],
+  "smart-meeting-summariser": [
+    "How did follow-through reach 92%?",
+    "How do you handle mixed Arabic/English audio?",
+    "Why post items into Planner?",
+  ],
+  "policy-document-qa-bot": [
+    "How do citations work here?",
+    "How did it deflect 70% of HR queries?",
+    "When does it escalate to a human?",
+  ],
+  "email-triage-copilot": [
+    "Why draft instead of auto-send?",
+    "How did acceptance reach 78%?",
+    "How does it learn from feedback?",
+  ],
+  "code-review-assistant": [
+    "What issues does it catch?",
+    "How does the prompt-injection scanner work?",
+    "How did it cut PR cycle time?",
+  ],
+  "data-quality-anomaly-detector": [
+    "Why combine stats with an LLM?",
+    "How did you cut false positives 60%?",
+    "What kinds of errors does it catch?",
+  ],
+  "survey-open-ended-coder": [
+    "How do confidence thresholds work?",
+    "How did you hit 92% agreement?",
+    "Why Arabic-first prompting?",
+  ],
+  "smart-form-validator": [
+    "How did match rate reach 94%?",
+    "Why replace regex with a model?",
+    "How do you keep it under 200ms?",
+  ],
+  "knowledge-base-auto-tagger": [
+    "How did you tag 40K docs in 36 hours?",
+    "How does this power the RAG filters?",
+    "What facets do you classify?",
+  ],
+  "exec-dashboard-narrator": [
+    "How do you get zero hallucinated numbers?",
+    "Why run significance tests first?",
+    "How is it bilingual?",
+  ],
+  "service-request-router": [
+    "How did misrouting drop to 6%?",
+    "How does confidence-gated escalation work?",
+    "How did it affect SLA breaches?",
+  ],
+  "social-sentiment-engine": [
+    "How do you keep latency under 30s?",
+    "Why streaming over batch?",
+    "How does spike detection work?",
+  ],
+  "lead-scoring-model": [
+    "Why logistic regression over a black box?",
+    "How did yield improve 18%?",
+    "How is scoring embedded in the workflow?",
+  ],
 };
 
 const DIAGRAMS: Record<string, ComponentType> = {

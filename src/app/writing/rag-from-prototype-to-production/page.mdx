@@ -1,0 +1,58 @@
+{/* DRAFT — review before deploying. Grounded in the RAG case study; no new metrics invented. */}
+
+export const metadata = {
+  title: "RAG from prototype to production: what nobody tells you",
+  description:
+    "Chunking, re-ranking, hybrid search, and eval frameworks — the six decisions that separate a RAG demo from a system that runs 24/7 in front of thousands of users.",
+  date: "2025-11-15",
+  readTime: "12 min",
+  tags: ["RAG", "LangChain", "Azure OpenAI", "Production"],
+};
+
+# RAG from prototype to production: what nobody tells you
+
+A RAG demo takes an afternoon. A RAG system that runs 24/7, in front of real users, with real accountability, takes months — and almost none of that time goes into the part the tutorials cover.
+
+I learned this building an enterprise RAG system at SCAD that indexes 100,000+ government documents and answers 5,000+ queries a month at 92% accuracy. Here are the six decisions that actually mattered.
+
+---
+
+## 1. Chunking beats model choice
+
+Our first prototype used fixed 1,024-token chunks. Answers were vague. Switching to **semantic chunking** — splitting on section boundaries instead of token counts — improved accuracy by roughly 20% before we touched the model at all.
+
+The lesson that keeps repeating: the bottleneck is almost never the model. It's how you cut the documents, what you retrieve, and how you assemble the prompt.
+
+## 2. Hybrid retrieval, not pure vectors
+
+Pure vector search is great at "what's our methodology for X" and terrible at exact terms — numbers, acronyms, proper nouns — that analysts care about. Pure keyword search is the opposite.
+
+We run both and merge the ranked lists with Reciprocal Rank Fusion. On our evaluation set, hybrid beat pure vector by **14 points on NDCG@5**. That single change did more than any model upgrade.
+
+## 3. Re-ranking earns its latency
+
+The retriever's job is recall: pull the ~50 candidates that *might* be relevant. The re-ranker's job is precision: pick the 5 best. A cross-encoder considers the query and each candidate together, so it's far more accurate than bi-encoder similarity — and you can afford the cost because you run it on 50 candidates, not 100,000.
+
+The bonus: sending a small, high-quality context window instead of dumping 20 raw chunks cut our generation costs by 65%.
+
+## 4. Citations are a feature, not a nicety
+
+Users don't trust answers they can't verify. We tag every chunk in the prompt with `[SOURCE: doc_id, page_n]`, instruct the model to carry those tags into its answer, then post-process them into clickable footnotes. That one change moved the system from "helpful" to "trustworthy" — the difference between a toy and something people rely on.
+
+## 5. Build the eval harness first
+
+We spent two weeks building a 200-question gold-standard evaluation set with domain experts *before* writing production code. It felt slow. It wasn't. Without it we'd have had no idea whether any individual change helped or hurt — and RAG systems are full of changes that feel better and measure worse.
+
+Evaluation infrastructure pays for itself within a month. Build it first, not last.
+
+## 6. Teach the model to say "I don't know"
+
+An early prototype scored higher on benchmarks but users preferred the later one. Why? The later version said *"I couldn't find a clear answer in the available documents"* when it was unsure. The earlier one confidently hallucinated. Users prefer accurate uncertainty over confident fiction. Trust is worth more than benchmark points.
+
+---
+
+## The unsexy 80%
+
+Everything above is the interesting part. The rest of production hardening — citation post-processing, Arabic/English handling, document permissions, rate limiting, observability dashboards — is the unglamorous 80% that separates a demo from a product. Budget for it, because that's where the months actually go.
+
+If you're building something similar, [ask the AI on this page](/) — it can answer questions about this work in real time — or [reach out](/for-recruiters).

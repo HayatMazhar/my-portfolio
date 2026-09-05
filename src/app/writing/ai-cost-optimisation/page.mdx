@@ -1,0 +1,54 @@
+{/* DRAFT — review before deploying. Grounded in shipped systems; no new metrics invented. */}
+
+export const metadata = {
+  title: "Cutting GPT-4 API costs 38% without hurting quality",
+  description:
+    "The prompt-engineering framework we built at SCAD — caching, token budgeting, model routing, and eval-driven iteration — that cut costs without sacrificing accuracy.",
+  date: "2025-05-15",
+  readTime: "7 min",
+  tags: ["Cost Optimisation", "GPT-4", "LLMOps"],
+};
+
+# Cutting GPT-4 API costs 38% without hurting quality
+
+The naive way to cut LLM costs is to switch to a cheaper model and hope quality holds. It rarely does. The better way is to spend fewer tokens on each call and route each job to the cheapest model that can actually do it. That's how we cut GPT-4 API costs 38% at SCAD while accuracy went *up*, not down.
+
+Here's the framework.
+
+---
+
+## 1. Token budgeting: your context window is a cost centre
+
+Every token you put into the prompt is paid on every call. Most RAG systems are wildly wasteful here — they dump 20 retrieved chunks into the context "just in case".
+
+Re-ranking fixed this for us. Instead of sending 20 raw chunks, we send the 5 best after a cross-encoder pass. On the document-intelligence system, sending a small, high-quality context window instead of the raw dump **cut generation costs by 65%** — and precision improved, because the model wasn't distracted by marginally-relevant text.
+
+Treat the context window as a budget. Every token in it should be earning its place.
+
+## 2. Model routing: don't send everything to the flagship
+
+Not every request needs GPT-4. Structured, predictable work can go to a smaller, cheaper model; only genuinely hard cases need the expensive one.
+
+In our vision pipeline this is explicit: Azure Document Intelligence handles structured forms cheaply, and GPT-4 Vision is reserved for the unstructured chaos — handwriting, mixed-language, odd layouts. Routing by difficulty means you pay flagship prices only for flagship problems.
+
+Two models with clear routing beat one expensive model trying to do everything — on both cost *and* quality.
+
+## 3. Caching: stop paying twice for the same answer
+
+A surprising share of production traffic is near-duplicate. Caching responses to identical (and semantically similar) queries removes whole classes of calls from the bill. It's the least glamorous item on this list and often the highest-leverage.
+
+## 4. Eval-driven iteration: measure before you cut
+
+Every optimisation above is a risk: compress the context too far, route too aggressively, and quality drops. The only reason we could cut costs *confidently* is that a fixed evaluation set told us, for each change, whether accuracy held.
+
+Cost optimisation without an eval harness is just degradation you haven't measured yet. With one, you can push each lever right up to the point where quality would suffer — and stop there.
+
+---
+
+## The mindset
+
+Cost and quality aren't opposites. Most LLM spend is waste — bloated context, over-powered models, repeated work — and removing waste usually *improves* quality because the model gets a cleaner, more focused job. Chase the waste, measure everything, and the savings come without a trade-off.
+
+Even so, keep it in perspective: the biggest saving is still cheaper than an hour of the analyst time these systems give back. Optimise, but optimise the right thing.
+
+Questions about the numbers or the approach? [Ask the AI on this page](/) or [get in touch](/for-recruiters).

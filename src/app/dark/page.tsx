@@ -17,6 +17,13 @@ import Ticker from "@/components/Ticker";
 import TrustStrip from "@/components/TrustStrip";
 import Writing from "@/components/Writing";
 
+// /dark is the legacy dark-theme showcase; keep it, but keep it out of search
+// so it doesn't compete with the canonical "/" (also disallowed in robots.ts).
+export const metadata = {
+  title: "Mazhar Hayat — AI Solutions Architect (dark edition)",
+  robots: { index: false, follow: true },
+};
+
 export default function DarkHome() {
   return (
     <>

@@ -226,7 +226,14 @@ export default function PodcastPage() {
 
                     {/* Progress bar */}
                     {isActive && (
-                      <div className="mt-4 h-1 overflow-hidden rounded-full bg-ink-line">
+                      <div
+                        className="mt-4 h-1 overflow-hidden rounded-full bg-ink-line"
+                        role="progressbar"
+                        aria-label={`Playback progress: episode ${ep.number}`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={Math.round(progress)}
+                      >
                         <div
                           className="h-full bg-signal transition-all"
                           style={{ width: `${progress}%` }}

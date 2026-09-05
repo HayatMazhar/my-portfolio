@@ -7,6 +7,10 @@ node_modules/
 # testing
 /coverage
 
+# local data artifacts (not part of the app)
+/data/
+/data.zip
+
 # next.js
 /.next/
 /out/

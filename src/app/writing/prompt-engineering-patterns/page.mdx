@@ -1,0 +1,55 @@
+{/* DRAFT — review before deploying. Grounded in shipped systems; no new metrics invented. */}
+
+export const metadata = {
+  title: "Prompt engineering patterns I actually use in production",
+  description:
+    "Few-shot, chain-of-thought, function calling, and system-prompt hygiene — with real examples from shipped systems and the cost/quality trade-offs of each.",
+  date: "2025-09-15",
+  readTime: "9 min",
+  tags: ["GPT-4", "Prompt Engineering", "Azure OpenAI"],
+};
+
+# Prompt engineering patterns I actually use in production
+
+Most "prompt engineering" advice is folklore. These are the handful of patterns that have actually earned their place in systems I run 24/7 — and, just as important, when *not* to reach for each one.
+
+---
+
+## 1. Few-shot beats instructions for format
+
+If you need a specific output shape, showing beats telling. In our NL-to-SQL platform, a curated set of question→SQL examples did more for accuracy than paragraphs of instructions ever could. The model pattern-matches the shape of your examples far more reliably than it follows prose rules.
+
+Keep the examples close to the real distribution of inputs, and rotate in the failure cases you find in production — your few-shot set is a living asset, not a one-time write.
+
+## 2. Chain-of-thought, but hide the reasoning
+
+For genuinely multi-step problems, letting the model reason before answering improves quality. But raw reasoning is slow, expensive, and leaks internal steps you don't want users to see. The production pattern: let it reason, then have it emit a clean final answer separately — and only surface the answer.
+
+Don't pay the chain-of-thought tax on simple lookups. It's a tool for hard problems, not a default.
+
+## 3. Function calling / structured output as a contract
+
+The single biggest reliability upgrade for anything downstream is forcing structured output. Downstream systems break on shape changes; schema-enforced output prevents silent errors from corrupting a database. In our vision pipeline, strict JSON schema output is what made 80% automation safe — the extractor either returns the agreed shape or it fails loudly.
+
+If a human isn't reading the output directly, it should almost always be structured.
+
+## 4. System-prompt hygiene
+
+A few rules that keep system prompts maintainable:
+
+- **State the refusal behaviour explicitly.** "If the answer isn't in the provided sources, say so" is the line that turns a confident liar into a trustworthy assistant.
+- **Put durable rules in the system prompt, volatile context in the user turn.** Schema, sources, and the current document belong in the user message; the model's job description belongs up top.
+- **Cite by default.** For any grounded system, require source tags in the output so answers are verifiable.
+- **Keep it short.** Every token in the system prompt is paid on every call. Trim ruthlessly.
+
+## 5. The repair loop beats a bigger model
+
+When output can be validated — SQL that executes, JSON that parses — feed failures back to the model with the error and let it try again. In our analytics platform, an execution-aware repair loop lifted accuracy 13 points. That's a bigger jump than most model upgrades, for a fraction of the cost.
+
+---
+
+## The meta-lesson
+
+Prompt design moves the needle far more than chasing the latest model — but only if you can *measure* it. Every pattern here was adopted because an evaluation set said it helped, and a couple of "obvious" tricks were dropped because the same set said they didn't. Treat prompts like code: version them, test them, and let the numbers decide.
+
+Questions about any of this? [Ask the AI on this page](/) or [get in touch](/for-recruiters).
