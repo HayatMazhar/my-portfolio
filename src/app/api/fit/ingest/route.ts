@@ -1,6 +1,5 @@
 import { extractFromUpload, extractFromUrl } from "@/lib/fit-ingest";
 import { rateLimit } from "@/lib/rate-limit";
-import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

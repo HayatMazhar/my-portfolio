@@ -10,7 +10,7 @@ export const PERSONAL = {
   calendly: "https://calendly.com/mazhar1783/15min",
   github: "https://github.com/mazhar1790",
   cvUrl: "/Mazhar-Hayat-AI-Architect-CV.docx",
-  cvUrlPdf: "/Mazhar-Hayat-AI-Architect-CV.docx",
+  cvUrlPdf: "/Mazhar-Hayat-AI-Architect-CV.pdf",
   cvLabel: "Mazhar Hayat — AI Architect CV",
   summary: `AI Solutions Architect with 15+ years of experience building production-grade intelligent systems, specializing in LLM integration, RAG architectures, and conversational AI. Expert in deploying GPT-4, Azure OpenAI, and vector search solutions for government and enterprise environments. Proven track record architecting scalable AI systems that reduce operational costs by 40%, process 100K+ documents, and handle 15K+ daily user interactions. Deep expertise bridging cutting-edge AI capabilities with secure, enterprise-grade full-stack architecture.`,
 } as const;

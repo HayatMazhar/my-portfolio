@@ -1,9 +1,14 @@
+import { rateLimit } from "@/lib/rate-limit";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "subscribe", { limit: 5, windowMs: 60_000 });
+  if (limited) return limited;
+
   let email = "";
   try {
     const body = await req.json();

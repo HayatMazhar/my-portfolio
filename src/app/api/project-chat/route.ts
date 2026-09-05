@@ -1,6 +1,7 @@
 import Groq from "groq-sdk";
 import { PROJECTS, PROJECT_STUDIES } from "@/data/cv";
 import { GROQ_CHAT_MODEL } from "@/lib/groq-models";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,9 @@ function buildContext(slug: string): string | null {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "project-chat", { limit: 20, windowMs: 60_000 });
+  if (limited) return limited;
+
   const groqKey = process.env.GROQ_API_KEY;
   if (!groqKey) {
     return new Response(

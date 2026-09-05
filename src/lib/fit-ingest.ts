@@ -75,6 +75,67 @@ async function assertPublicHttpsUrl(raw: string): Promise<URL> {
   return url;
 }
 
+/**
+ * Returns the inner HTML of the element starting at `openIdx`, tracking nesting
+ * of the same tag so a wrapper div is not closed by its first child.
+ */
+function sliceElement(html: string, openIdx: number, tag: string): string {
+  const start = html.indexOf(">", openIdx);
+  if (start === -1) return "";
+  const scanner = new RegExp(`<${tag}\\b[^>]*>|</${tag}\\s*>`, "gi");
+  scanner.lastIndex = start + 1;
+  let depth = 1;
+  let match: RegExpExecArray | null;
+  while ((match = scanner.exec(html))) {
+    depth += match[0].startsWith("</") ? -1 : 1;
+    if (depth === 0) return html.slice(start + 1, match.index);
+  }
+  return html.slice(start + 1);
+}
+
+/**
+ * Job boards wrap the posting in a known container and surround it with nav,
+ * search, and footer markup. Isolating that container keeps the character
+ * budget spent on the actual description.
+ */
+const CONTENT_CONTAINERS: { tag: string; pattern: RegExp }[] = [
+  // LinkedIn guest view and common ATS description blocks.
+  {
+    tag: "div",
+    pattern: /<div\b[^>]*class=["'][^"']*(?:description__text|jobs-description__content|job-description|jobDescription)[^"']*["'][^>]*>/i,
+  },
+  {
+    tag: "section",
+    pattern: /<section\b[^>]*class=["'][^"']*(?:show-more-less-html|job-description)[^"']*["'][^>]*>/i,
+  },
+  { tag: "div", pattern: /<div\b[^>]*itemprop=["']description["'][^>]*>/i },
+  { tag: "article", pattern: /<article\b[^>]*>/i },
+  { tag: "main", pattern: /<main\b[^>]*>/i },
+];
+
+/** The role title usually sits outside the description container. */
+function pageHeading(html: string): string {
+  const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/i.exec(html);
+  const fromH1 = h1 ? htmlToText(h1[1]) : "";
+  if (fromH1.length >= 8 && fromH1.length <= 200) return fromH1;
+  const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
+  // Trim the trailing " | Site Name" that most boards append.
+  const fromTitle = title
+    ? htmlToText(title[1]).replace(/\s*\|[^|]{0,40}$/, "").trim()
+    : "";
+  return fromTitle.length >= 8 && fromTitle.length <= 200 ? fromTitle : "";
+}
+
+function mainContentHtml(html: string): string {
+  for (const { tag, pattern } of CONTENT_CONTAINERS) {
+    const match = pattern.exec(html);
+    if (!match) continue;
+    const inner = sliceElement(html, match.index, tag);
+    if (htmlToText(inner).length >= 400) return inner;
+  }
+  return html;
+}
+
 function htmlToText(html: string): string {
   const text = html
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
@@ -340,7 +401,14 @@ export async function extractFromBytes(
   ) {
     const structured = jobPostingFromJsonLd(asText);
     if (structured.length >= 200) return structured;
-    const plain = htmlToText(asText);
+    const main = mainContentHtml(asText);
+    let plain = htmlToText(main);
+    if (main !== asText) {
+      const heading = pageHeading(asText);
+      if (heading && !plain.slice(0, 400).includes(heading)) {
+        plain = `${heading}\n\n${plain}`;
+      }
+    }
     return structured.length > plain.length ? structured : plain;
   }
 

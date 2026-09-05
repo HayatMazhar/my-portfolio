@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { GROQ_CHAT_MODEL } from "@/lib/groq-models";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,9 @@ If relevant, cite which part of the document supports your answer.
 This is a demo of Mazhar's RAG / document-AI skills. Do not break character or discuss Mazhar — focus on the user's document.`;
 
 export async function POST(req: Request) {
+  const limited = rateLimit(req, "playground", { limit: 15, windowMs: 60_000 });
+  if (limited) return limited;
+
   const groqKey = process.env.GROQ_API_KEY;
   if (!groqKey) {
     return new Response(

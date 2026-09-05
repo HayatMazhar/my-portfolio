@@ -426,9 +426,9 @@ export default function FitPage() {
         {/* Help text */}
         {!report && !error && (
           <p className="mt-8 text-center text-sm text-paper-dim">
-            Tip: a public careers-page URL or a PDF/DOCX works. LinkedIn and
-            some boards hide the posting — paste the text if Fetch comes back
-            empty.
+            Tip: most public job links work — careers pages, LinkedIn, and
+            job boards that build the page in the browser. If a posting sits
+            behind a login, upload it as PDF/DOCX or paste the text.
           </p>
         )}
         </>

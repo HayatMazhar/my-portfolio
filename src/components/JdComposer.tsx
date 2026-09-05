@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileUp, Link2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,25 +23,70 @@ export async function resolveJdText(raw: string): Promise<string> {
   return text;
 }
 
+/**
+ * Hosting panels and proxies answer with HTML error pages, so parsing blindly
+ * would surface "Unexpected token '<'" instead of something actionable.
+ */
+async function readIngestResult(
+  res: Response,
+  fallback: string,
+): Promise<{ text: string; via: string }> {
+  const raw = await res.text();
+  let data: { text?: unknown; via?: unknown; error?: unknown };
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error(
+      res.status === 429
+        ? "Too many requests just now — wait a moment and try again."
+        : fallback,
+    );
+  }
+  if (!res.ok) {
+    throw new Error(typeof data.error === "string" ? data.error : fallback);
+  }
+  return { text: String(data.text ?? ""), via: String(data.via ?? "direct") };
+}
+
 async function ingestUrl(url: string): Promise<{ text: string; via: string }> {
   const res = await fetch("/api/fit/ingest", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url }),
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Could not fetch that URL.");
-  return { text: String(data.text ?? ""), via: String(data.via ?? "direct") };
+  return readIngestResult(res, "Could not fetch that URL.");
 }
 
 async function ingestFile(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
   const res = await fetch("/api/fit/ingest", { method: "POST", body: form });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "Could not read that file.");
-  return String(data.text ?? "");
+  const { text } = await readIngestResult(res, "Could not read that file.");
+  return text;
 }
+
+interface Stage {
+  /** Milliseconds after the request starts. */
+  at: number;
+  pct: number;
+  label: string;
+}
+
+// The bar cannot track real server progress, so the stages are timed to the
+// work the route actually does: fetch, parse, then the slower render fallback.
+const URL_STAGES: Stage[] = [
+  { at: 0, pct: 12, label: "Fetching the posting…" },
+  { at: 900, pct: 34, label: "Reading the page…" },
+  { at: 2600, pct: 55, label: "Page builds itself in the browser — rendering it…" },
+  { at: 7000, pct: 78, label: "Still rendering — heavy pages take a few seconds…" },
+  { at: 16000, pct: 90, label: "Almost there…" },
+];
+
+const FILE_STAGES: Stage[] = [
+  { at: 0, pct: 20, label: "Uploading the document…" },
+  { at: 700, pct: 55, label: "Extracting the text…" },
+  { at: 2500, pct: 80, label: "Tidying up the layout…" },
+];
 
 export default function JdComposer({
   value,
@@ -57,19 +102,54 @@ export default function JdComposer({
   onSample?: () => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState<"url" | "file" | null>(null);
   const [hint, setHint] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ pct: number; label: string } | null>(
+    null,
+  );
+
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  function startProgress(stages: Stage[]) {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    setProgress({ pct: stages[0].pct, label: stages[0].label });
+    for (const stage of stages.slice(1)) {
+      timers.current.push(
+        setTimeout(
+          () => setProgress({ pct: stage.pct, label: stage.label }),
+          stage.at,
+        ),
+      );
+    }
+  }
+
+  function endProgress(done: boolean) {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    if (!done) {
+      setProgress(null);
+      return;
+    }
+    // Let the bar land on 100% before it disappears.
+    setProgress((prev) => (prev ? { pct: 100, label: "Done" } : null));
+    timers.current.push(setTimeout(() => setProgress(null), 400));
+  }
 
   async function fetchLink() {
     const target = url.trim() || looksLikeSingleUrl(value) || "";
     if (!target || busy) return;
     setBusy("url");
     setHint(null);
+    startProgress(URL_STAGES);
+    let ok = false;
     try {
       const { text, via } = await ingestUrl(target);
       onChange(text);
       setUrl("");
+      ok = true;
       setHint(
         via === "rendered"
           ? "That page needed rendering, so it went through a reader proxy — skim it, then analyse."
@@ -78,6 +158,7 @@ export default function JdComposer({
     } catch (err) {
       setHint(err instanceof Error ? err.message : "Could not fetch that URL.");
     } finally {
+      endProgress(ok);
       setBusy(null);
     }
   }
@@ -86,13 +167,17 @@ export default function JdComposer({
     if (!file || busy) return;
     setBusy("file");
     setHint(null);
+    startProgress(FILE_STAGES);
+    let ok = false;
     try {
       const text = await ingestFile(file);
       onChange(text);
+      ok = true;
       setHint(`Loaded ${file.name} — skim it, then analyse.`);
     } catch (err) {
       setHint(err instanceof Error ? err.message : "Could not read that file.");
     } finally {
+      endProgress(ok);
       setBusy(null);
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -157,6 +242,21 @@ export default function JdComposer({
           onChange={(e) => void onFile(e.target.files?.[0])}
         />
       </div>
+
+      {progress && (
+        <div className="mt-2.5" role="status" aria-live="polite">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-ink-line">
+            <div
+              className="h-full rounded-full bg-signal transition-[width] duration-700 ease-out"
+              style={{ width: `${progress.pct}%` }}
+            />
+          </div>
+          <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-paper-muted">
+            <Loader2 className="h-3 w-3 animate-spin text-signal" />
+            {progress.label}
+          </p>
+        </div>
+      )}
 
       <textarea
         value={value}
