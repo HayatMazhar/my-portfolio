@@ -161,7 +161,7 @@ export default function PlaygroundPage() {
             Paste anything — a contract, a job description, meeting notes, a
             paper — and ask the AI a question about it. Nothing is stored.
             Sub-second responses. This is the same kind of grounded
-            document-AI I build in production. Powered by Llama 3.3 70B on Groq.
+            document-AI I build in production. Powered by GPT-OSS 120B on Groq.
           </p>
         </header>
 
@@ -255,7 +255,7 @@ export default function PlaygroundPage() {
         </section>
 
         <p className="mt-10 text-center font-mono text-[10px] uppercase tracking-widest text-paper-dim">
-          Nothing stored · Streaming response · Llama 3.3 70B on Groq
+          Nothing stored · Streaming response · GPT-OSS 120B on Groq
         </p>
       </div>
     </main>

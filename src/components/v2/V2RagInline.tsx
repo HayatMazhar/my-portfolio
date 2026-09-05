@@ -12,6 +12,7 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
+import { GROQ_CHAT_MODEL } from "@/lib/groq-models";
 
 interface Source {
   id: string;
@@ -73,7 +74,7 @@ export default function V2RagInline() {
           query: q,
           topK: 5,
           rerank: true,
-          model: "llama-3.3-70b-versatile",
+          model: GROQ_CHAT_MODEL,
         }),
         signal: abortRef.current.signal,
       });
@@ -155,7 +156,7 @@ export default function V2RagInline() {
               Live RAG Demo
             </p>
             <p className="font-mono text-[10px] text-[#9a9a96]">
-              Pinecone · Gemini · Cohere · Groq Llama 3.3
+              Pinecone · Gemini · Cohere · Groq GPT-OSS 120B
             </p>
           </div>
         </div>

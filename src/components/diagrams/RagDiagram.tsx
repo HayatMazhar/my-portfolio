@@ -252,7 +252,7 @@ export default function RagDiagram() {
           y={114}
           w={190}
           h={46}
-          label="Groq · Llama 3.3 70B"
+          label="Groq · GPT-OSS 120B"
           sublabel="streaming · &lt;800ms"
           accent
           tooltip="Sub-second generation, citation-by-default prompt"

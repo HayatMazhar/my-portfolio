@@ -38,8 +38,8 @@ demonstrate a real production engineering decision:
    │  Next.js 14 (App Router) — Static + RSC + Edge OG       │
    └─────────────────────────────────────────────────────────┘
               │
-              ├── /api/chat           ─── Groq Llama 3.3 70B  (streaming)
-              ├── /api/chat/followups ─── Groq Llama 3.1 8B
+              ├── /api/chat           ─── Groq GPT-OSS 120B  (streaming)
+              ├── /api/chat/followups ─── Groq GPT-OSS 20B
               ├── /api/rag-demo       ─── Gemini embed → Pinecone → Cohere rerank → Groq
               ├── /api/fit            ─── Groq + structured JSON output
               ├── /api/playground     ─── Groq (no RAG, doc-grounded)
@@ -54,7 +54,7 @@ demonstrate a real production engineering decision:
 | Netlify | Hosting · CDN · CI | Free |
 | Pinecone (serverless) | Vector index for CV chunks | Free starter |
 | Google Gemini | Embeddings (`gemini-embedding-001`, 3072d) | Free tier |
-| Groq | LLM inference (Llama 3.3 70B + 3.1 8B + Gemma 2) | Free tier |
+| Groq | LLM inference (GPT-OSS 120B + GPT-OSS 20B) | Free tier |
 | Cohere | Cross-encoder reranking (`rerank-v3.5`) | Trial tier (1K calls/mo) |
 | **Total** | | **$0/month** |
 

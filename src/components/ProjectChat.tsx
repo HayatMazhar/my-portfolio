@@ -68,7 +68,7 @@ export default function ProjectChat({ slug, projectName, suggestions = [] }: Pro
               Ask anything about {projectName}
             </p>
             <p className="font-mono text-[10px] uppercase tracking-widest text-paper-dim">
-              AI scoped to this project · Llama 3.3 70B
+              AI scoped to this project · GPT-OSS 120B
             </p>
           </div>
         </div>

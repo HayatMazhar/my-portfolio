@@ -27,7 +27,7 @@ const ITEMS: Pill[] = [
   { label: "GPT-4.1", kind: "model" },
   { label: "Claude 3.5 Sonnet", kind: "model" },
   { label: "Gemini 1.5 Pro", kind: "model" },
-  { label: "Llama 3.1", kind: "model" },
+  { label: "GPT-OSS", kind: "model" },
   { label: "Mistral", kind: "model" },
   { label: "Groq", kind: "model" },
   { label: "Azure OpenAI", kind: "infra" },

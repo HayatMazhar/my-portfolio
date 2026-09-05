@@ -16,7 +16,7 @@
     "embedding": "Gemini gemini-embedding-001 (3072d)",
     "retriever": "Pinecone serverless · top-k 12",
     "reranker": "Cohere rerank-v3.5 · top-k 5",
-    "generator": "Groq Llama 3.3 70B"
+    "generator": "Groq GPT-OSS 120B"
   },
   "metrics": [
     {

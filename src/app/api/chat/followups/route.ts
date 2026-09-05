@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { CV_CONTEXT } from "@/data/cv";
+import { GROQ_FAST_MODEL } from "@/lib/groq-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,8 +37,9 @@ export async function POST(req: Request) {
     const groq = new Groq({ apiKey: groqKey });
 
     const result = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      max_tokens: 150,
+      model: GROQ_FAST_MODEL,
+      reasoning_effort: "low",
+      max_completion_tokens: 700,
       messages: [
         {
           role: "system",
@@ -54,9 +56,13 @@ export async function POST(req: Request) {
 
     const raw = result.choices[0]?.message?.content?.trim() ?? "[]";
     const match = raw.match(/\[.*\]/s);
-    const followups: string[] = match ? JSON.parse(match[0]) : [];
+    const parsed: unknown = match ? JSON.parse(match[0]) : [];
+    const followups = Array.isArray(parsed)
+      ? parsed.filter((q): q is string => typeof q === "string")
+      : [];
     return Response.json({ followups: followups.slice(0, 3) });
-  } catch {
+  } catch (err) {
+    console.error("followups failed", err);
     return Response.json({ followups: [] });
   }
 }

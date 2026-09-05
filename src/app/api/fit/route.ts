@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { RAG_CORPUS } from "@/data/rag-corpus";
+import { GROQ_CHAT_MODEL } from "@/lib/groq-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,7 +77,7 @@ export async function POST(req: Request) {
 
   try {
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_CHAT_MODEL,
       temperature: 0.3,
       max_tokens: 1500,
       response_format: { type: "json_object" },

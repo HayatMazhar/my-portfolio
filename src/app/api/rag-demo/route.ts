@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CohereClient } from "cohere-ai";
 import Groq from "groq-sdk";
 import { CORPUS_NAMESPACE, PINECONE_INDEX_NAME } from "@/data/rag-corpus";
+import { GROQ_ALLOWED_MODELS, GROQ_CHAT_MODEL } from "@/lib/groq-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
   let query = "";
   let topK = DEFAULT_TOP_K;
   let useRerank = true;
-  let model = "llama-3.3-70b-versatile";
+  let model = GROQ_CHAT_MODEL;
   try {
     const body = await req.json();
     query = (body.query ?? "").trim();
@@ -49,12 +50,7 @@ export async function POST(req: Request) {
       useRerank = body.rerank;
     }
     if (typeof body.model === "string") {
-      const allowed = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "gemma2-9b-it",
-      ];
-      if (allowed.includes(body.model)) model = body.model;
+      if (GROQ_ALLOWED_MODELS.includes(body.model)) model = body.model;
     }
   } catch {
     return new Response(JSON.stringify({ error: "Invalid request body" }), {
@@ -143,7 +139,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // ── 4. Stream answer with Groq Llama 3.3 70B ─────────────────────────────
+  // ── 4. Stream answer with Groq ───────────────────────────────────────────
   const contextBlock = chunks
     .map((c, i) => `[SOURCE ${i + 1}: ${c.title}]\n${c.content}`)
     .join("\n\n---\n\n");

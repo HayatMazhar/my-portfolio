@@ -18,7 +18,7 @@ const STEPS = [
   {
     n: "03",
     title: "Cited generation",
-    body: "Groq Llama 3.3 70B synthesises a cited answer from the top-5 chunks in ~1 s.",
+    body: "Groq GPT-OSS 120B synthesises a cited answer from the top-5 chunks in ~1 s.",
   },
 ];
 
