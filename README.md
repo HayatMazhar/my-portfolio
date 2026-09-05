@@ -1,11 +1,10 @@
 # Mazhar Hayat — AI-First Portfolio
 
-A production portfolio that **runs RAG on itself**. Live demo at
-[keen-tartufo-313e21.netlify.app](https://keen-tartufo-313e21.netlify.app/).
+A production portfolio that **runs RAG on itself**. Live at
+[mazharhayat.live](https://mazharhayat.live/).
 
 > **The entire site costs $0/month to run.** Every AI feature included.
-> See [`/stack`](https://keen-tartufo-313e21.netlify.app/stack) for the
-> full receipt.
+> See [`/stack`](https://mazharhayat.live/stack) for the full receipt.
 
 ---
 
@@ -81,6 +80,7 @@ GEMINI_API_KEY=...        # https://aistudio.google.com/apikey
 PINECONE_API_KEY=...      # https://app.pinecone.io
 COHERE_API_KEY=...        # https://dashboard.cohere.com  (optional, for rerank)
 BUTTONDOWN_API_KEY=...    # optional, for email subscribers
+NEXT_PUBLIC_SITE_URL=...  # optional, overrides the canonical origin
 ```
 
 ### Seeding the RAG corpus
@@ -92,6 +92,31 @@ node scripts/seed-pinecone.mjs
 ```
 
 This embeds each chunk with Gemini and upserts to your Pinecone index.
+
+---
+
+## Deploying
+
+The AI routes stream from the server, so this needs a Node host — a static
+export will not work.
+
+**mazharhayat.live** runs as a cPanel Node.js app (LiteSpeed + Passenger).
+To ship a new revision, from the application root set in *Setup Node.js App*:
+
+```bash
+git pull origin master
+npm ci
+npm run build
+```
+
+Then hit **Restart** in *Setup Node.js App*. API keys live in that same
+screen's environment-variable panel, not in a committed `.env`.
+
+Netlify builds the same commit automatically via `netlify.toml`, which is
+useful as a staging target and as a fallback host.
+
+After changing the public origin, re-run `node scripts/seed-pinecone.mjs` so
+the RAG corpus stops citing the old URL.
 
 ---
 

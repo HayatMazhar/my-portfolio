@@ -74,4 +74,4 @@ MIT. Fork it, adapt it for your own CV. The pattern is reusable.
 ## Author
 
 Mazhar Hayat · [Mazhar1783@outlook.com](mailto:Mazhar1783@outlook.com) ·
-[Portfolio](https://keen-tartufo-313e21.netlify.app)
+[Portfolio](https://mazharhayat.live)

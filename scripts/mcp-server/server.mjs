@@ -54,7 +54,7 @@ const PROFILE = {
   location: "Abu Dhabi, United Arab Emirates",
   email: "Mazhar1783@outlook.com",
   linkedin: "https://www.linkedin.com/in/mazharhayyat/",
-  portfolio: "https://keen-tartufo-313e21.netlify.app",
+  portfolio: "https://mazharhayat.live",
   yearsOfExperience: 15,
   availability: "Available from June 2026 for senior IC, principal, or hands-on tech-lead roles. Remote, hybrid (UAE), or relocation.",
   bookCall: "https://calendly.com/mazhar1783/15min",
