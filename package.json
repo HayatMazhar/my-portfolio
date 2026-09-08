@@ -19,6 +19,7 @@
     "@pinecone-database/pinecone": "^7.2.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "bcryptjs": "^3.0.3",
     "cmdk": "^1.1.1",
     "cohere-ai": "^8.0.0",
     "framer-motion": "^11.11.17",
@@ -31,10 +32,12 @@
     "react-dom": "^18.3.1",
     "rehype-highlight": "^7.0.2",
     "remark-gfm": "^4.0.1",
+    "server-only": "^0.0.1",
     "unpdf": "^1.8.1"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.11",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

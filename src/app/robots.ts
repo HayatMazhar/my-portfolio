@@ -11,7 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // API routes and the legacy dark theme add no SEO value.
-        disallow: ["/api/", "/dark"],
+        disallow: ["/api/", "/admin/", "/dark"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

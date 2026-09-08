@@ -3,7 +3,7 @@ import { Inter, Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans, Caveat } fr
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PERSONAL } from "@/data/cv";
-import { ChatProvider } from "@/components/AiChat/ChatContext";
+import ChatOptional from "@/components/ChatOptional";
 import ScrollProgress from "@/components/ScrollProgress";
 import ThemeProvider from "@/components/ThemeProvider";
 import VisitPulse from "@/components/VisitPulse";
@@ -111,7 +111,7 @@ export default function RootLayout({
       <body className="min-h-screen antialiased">
         <ScrollProgress />
         <ThemeProvider>
-        <ChatProvider>{children}</ChatProvider>
+        <ChatOptional>{children}</ChatOptional>
         </ThemeProvider>
         <VisitPulse />
         <EasterEgg />
