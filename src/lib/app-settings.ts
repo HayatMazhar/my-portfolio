@@ -2,9 +2,9 @@ import "server-only";
 
 import bcrypt from "bcryptjs";
 import { randomBytes, timingSafeEqual } from "crypto";
-import { getAppSettingRow, setAppSettingRow } from "@/lib/admin-db";
+import { getAppSettingRow, setAppSettingRow, getAdminStoreBackend, resolveAdminStoreBackend } from "@/lib/admin-db";
 
-/** Keys persisted in app_settings (SQLite on server). Env vars are optional fallbacks. */
+/** Keys persisted in the admin store (Turso when configured, otherwise JSON). Env vars are optional fallbacks. */
 export const APP_SETTING_KEYS = {
   adminPasswordHash: "admin_password_hash",
   adminSessionSecret: "admin_session_secret",
@@ -16,6 +16,9 @@ export const APP_SETTING_KEYS = {
   linkedinClientId: "linkedin_client_id",
   linkedinClientSecret: "linkedin_client_secret",
   linkedinRedirectUri: "linkedin_redirect_uri",
+  linkedinOrganizationUrn: "linkedin_organization_urn",
+  linkedinAdvancedScopes: "linkedin_advanced_scopes",
+  replyPlaybook: "linkedin_reply_playbook",
   adminCronSecret: "admin_cron_secret",
 } as const;
 
@@ -43,6 +46,7 @@ const ENV_FALLBACK: Partial<Record<AppSettingKey, string>> = {
   [APP_SETTING_KEYS.linkedinClientId]: "LINKEDIN_CLIENT_ID",
   [APP_SETTING_KEYS.linkedinClientSecret]: "LINKEDIN_CLIENT_SECRET",
   [APP_SETTING_KEYS.linkedinRedirectUri]: "LINKEDIN_REDIRECT_URI",
+  [APP_SETTING_KEYS.linkedinOrganizationUrn]: "LINKEDIN_ORGANIZATION_URN",
   [APP_SETTING_KEYS.adminCronSecret]: "ADMIN_CRON_SECRET",
 };
 
@@ -137,10 +141,14 @@ export interface AppSettingsView {
   linkedinClientId: string;
   linkedinClientSecret: string;
   linkedinRedirectUri: string;
+  linkedinOrganizationUrn: string;
+  linkedinAdvancedScopes: boolean;
+  replyPlaybook: string;
   adminCronSecret: string;
   hasPassword: boolean;
   hasGroq: boolean;
   hasLinkedIn: boolean;
+  storeBackend: "turso" | "json";
   /** True when values exist in DB (not only env). */
   storedInApp: Record<string, boolean>;
 }
@@ -157,6 +165,8 @@ export async function getAppSettingsView(): Promise<AppSettingsView> {
   const storedInApp = Object.fromEntries(
     keys.map((k, i) => [k, Boolean(dbRows[i]?.trim())]),
   );
+
+  await resolveAdminStoreBackend();
 
   const passwordHash = map[APP_SETTING_KEYS.adminPasswordHash];
   const sessionSecret = map[APP_SETTING_KEYS.adminSessionSecret];
@@ -189,6 +199,11 @@ export async function getAppSettingsView(): Promise<AppSettingsView> {
       : "",
     linkedinRedirectUri:
       map[APP_SETTING_KEYS.linkedinRedirectUri] || redirectDefault,
+    linkedinOrganizationUrn:
+      map[APP_SETTING_KEYS.linkedinOrganizationUrn] || "",
+    linkedinAdvancedScopes:
+      map[APP_SETTING_KEYS.linkedinAdvancedScopes] === "true",
+    replyPlaybook: map[APP_SETTING_KEYS.replyPlaybook] || "",
     adminCronSecret: map[APP_SETTING_KEYS.adminCronSecret]
       ? maskSecret(map[APP_SETTING_KEYS.adminCronSecret]!)
       : "",
@@ -198,6 +213,7 @@ export async function getAppSettingsView(): Promise<AppSettingsView> {
       map[APP_SETTING_KEYS.linkedinClientId] &&
         map[APP_SETTING_KEYS.linkedinClientSecret],
     ),
+    storeBackend: getAdminStoreBackend(),
     storedInApp,
   };
 }

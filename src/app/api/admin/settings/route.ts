@@ -51,11 +51,31 @@ export async function PATCH(req: Request) {
     linkedinClientId: APP_SETTING_KEYS.linkedinClientId,
     linkedinClientSecret: APP_SETTING_KEYS.linkedinClientSecret,
     linkedinRedirectUri: APP_SETTING_KEYS.linkedinRedirectUri,
+    linkedinOrganizationUrn: APP_SETTING_KEYS.linkedinOrganizationUrn,
+    linkedinAdvancedScopes: APP_SETTING_KEYS.linkedinAdvancedScopes,
+    replyPlaybook: APP_SETTING_KEYS.replyPlaybook,
     adminCronSecret: APP_SETTING_KEYS.adminCronSecret,
   };
 
   for (const [field, key] of Object.entries(fieldMap)) {
     const value = body[field]?.trim();
+    if (
+      field === "linkedinOrganizationUrn" &&
+      value &&
+      !/^urn:li:organization:\d+$/.test(value)
+    ) {
+      return NextResponse.json(
+        { error: "Organization URN must look like urn:li:organization:123456." },
+        { status: 400 },
+      );
+    }
+    if (
+      (field === "replyPlaybook" || field === "linkedinOrganizationUrn") &&
+      typeof body[field] === "string"
+    ) {
+      updates[key] = value ?? "";
+      continue;
+    }
     if (!value || MASK.test(value)) continue;
     if (field === "groqApiKey" && !/^gsk_[A-Za-z0-9_-]{10,}$/.test(value)) {
       return NextResponse.json(

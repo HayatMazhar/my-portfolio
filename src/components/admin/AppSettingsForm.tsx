@@ -14,10 +14,14 @@ interface SettingsView {
   linkedinClientId: string;
   linkedinClientSecret: string;
   linkedinRedirectUri: string;
+  linkedinOrganizationUrn: string;
+  linkedinAdvancedScopes: boolean;
+  replyPlaybook: string;
   adminCronSecret: string;
   hasPassword: boolean;
   hasGroq: boolean;
   hasLinkedIn: boolean;
+  storeBackend?: "turso" | "json";
 }
 
 const SECRET_FIELDS = [
@@ -42,6 +46,9 @@ export default function AppSettingsForm() {
     linkedinClientId: "",
     linkedinClientSecret: "",
     linkedinRedirectUri: "",
+    linkedinOrganizationUrn: "",
+    linkedinAdvancedScopes: "false",
+    replyPlaybook: "",
     adminCronSecret: "",
     currentPassword: "",
     newPassword: "",
@@ -54,6 +61,10 @@ export default function AppSettingsForm() {
     connected: false,
     memberUrn: null as string | null,
     expiresAt: null as number | null,
+    organizationUrn: null as string | null,
+    advancedScopes: false,
+    grantedScopes: [] as string[],
+    canReadComments: false,
   });
 
   const load = useCallback(async () => {
@@ -64,7 +75,20 @@ export default function AppSettingsForm() {
     const settingsJson = (await settingsRes.json()) as {
       settings?: SettingsView;
     };
-    const linkedinJson = (await linkedinRes.json()) as typeof linkedin & {
+    const linkedinJson = (
+      linkedinRes.ok
+        ? await linkedinRes.json()
+        : {
+            configured: false,
+            connected: false,
+            memberUrn: null,
+            expiresAt: null,
+            organizationUrn: null,
+            advancedScopes: false,
+            grantedScopes: [],
+            canReadComments: false,
+          }
+    ) as typeof linkedin & {
       configured?: boolean;
     };
 
@@ -75,6 +99,12 @@ export default function AppSettingsForm() {
         siteUrl: settingsJson.settings!.siteUrl,
         linkedinClientId: settingsJson.settings!.linkedinClientId,
         linkedinRedirectUri: settingsJson.settings!.linkedinRedirectUri,
+        linkedinOrganizationUrn:
+          settingsJson.settings!.linkedinOrganizationUrn,
+        linkedinAdvancedScopes: String(
+          settingsJson.settings!.linkedinAdvancedScopes,
+        ),
+        replyPlaybook: settingsJson.settings!.replyPlaybook,
         groqApiKey: "",
         geminiApiKey: "",
         pineconeApiKey: "",
@@ -89,6 +119,10 @@ export default function AppSettingsForm() {
       connected: Boolean(linkedinJson.connected),
       memberUrn: linkedinJson.memberUrn ?? null,
       expiresAt: linkedinJson.expiresAt ?? null,
+      organizationUrn: linkedinJson.organizationUrn ?? null,
+      advancedScopes: Boolean(linkedinJson.advancedScopes),
+      grantedScopes: linkedinJson.grantedScopes ?? [],
+      canReadComments: Boolean(linkedinJson.canReadComments),
     });
   }, []);
 
@@ -156,6 +190,15 @@ export default function AppSettingsForm() {
   return (
     <div className="space-y-6">
       <form onSubmit={save} className="space-y-6">
+        <section className="rounded-2xl border border-cream-line bg-white p-6">
+          <h2 className="font-jakarta text-lg font-bold text-coal">Database</h2>
+          <p className="mt-2 text-sm text-coal-muted">
+            {settings.storeBackend === "turso"
+              ? "Posts, comments, and settings are stored in Turso. Add the same TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in cPanel for production."
+              : "Using the local JSON file. Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN to switch to Turso."}
+          </p>
+        </section>
+
         <section className="rounded-2xl border border-cream-line bg-white p-6">
           <h2 className="font-jakarta text-lg font-bold text-coal">General</h2>
           <label className="mt-4 block text-sm font-medium text-coal-soft">
@@ -244,6 +287,54 @@ export default function AppSettingsForm() {
               Add this exact URL in your LinkedIn developer app.
             </p>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-coal-soft">
+              Company page organization URN (optional)
+            </label>
+            <input
+              value={form.linkedinOrganizationUrn}
+              onChange={(e) =>
+                setField("linkedinOrganizationUrn", e.target.value)
+              }
+              placeholder="urn:li:organization:123456"
+              className="mt-1 w-full rounded-xl border border-cream-line px-4 py-3 font-mono text-sm"
+            />
+          </div>
+          <label className="flex items-start gap-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+            <input
+              type="checkbox"
+              checked={form.linkedinAdvancedScopes === "true"}
+              onChange={(e) =>
+                setField(
+                  "linkedinAdvancedScopes",
+                  e.target.checked ? "true" : "false",
+                )
+              }
+              className="mt-0.5"
+            />
+            <span>
+              Request company publishing, analytics, and comment-reading scopes
+              on the next LinkedIn connection. Enable only after LinkedIn grants
+              Community Management API access — until then LinkedIn rejects the
+              whole connection with unauthorized_scope_error.
+            </span>
+          </label>
+        </section>
+
+        <section className="space-y-4 rounded-2xl border border-cream-line bg-white p-6">
+          <h2 className="font-jakarta text-lg font-bold text-coal">
+            Comment playbook
+          </h2>
+          <p className="text-sm text-coal-muted">
+            Rules applied to every generated comment reply.
+          </p>
+          <textarea
+            rows={5}
+            value={form.replyPlaybook}
+            onChange={(e) => setField("replyPlaybook", e.target.value)}
+            placeholder="Prefer concise replies. Ignore link spam. For recruiters, invite a DM. Never debate political comments…"
+            className="w-full rounded-xl border border-cream-line px-4 py-3 text-sm"
+          />
         </section>
 
         <section className="rounded-2xl border border-cream-line bg-white p-6 space-y-4">
@@ -267,10 +358,31 @@ export default function AppSettingsForm() {
               Generate new cron secret
             </button>
             <p className="mt-2 text-xs text-coal-dim">
-              cPanel cron:{" "}
+              Scheduled posts cron:{" "}
               <code className="font-mono">
                 curl -X POST -H &quot;Authorization: Bearer SECRET&quot;{" "}
                 {form.siteUrl || settings.siteUrl}/api/admin/cron/publish-scheduled
+              </code>
+            </p>
+            <p className="mt-2 text-xs text-coal-dim">
+              Comment poll cron (every 10–15 min):{" "}
+              <code className="font-mono">
+                curl -X POST -H &quot;Authorization: Bearer SECRET&quot;{" "}
+                {form.siteUrl || settings.siteUrl}/api/admin/cron/poll-comments
+              </code>
+            </p>
+            <p className="mt-2 text-xs text-coal-dim">
+              Metrics sync cron (daily):{" "}
+              <code className="font-mono">
+                curl -X POST -H &quot;Authorization: Bearer SECRET&quot;{" "}
+                {form.siteUrl || settings.siteUrl}/api/admin/cron/sync-metrics
+              </code>
+            </p>
+            <p className="mt-2 text-xs text-coal-dim">
+              Recurring series cron (daily):{" "}
+              <code className="font-mono">
+                curl -X POST -H &quot;Authorization: Bearer SECRET&quot;{" "}
+                {form.siteUrl || settings.siteUrl}/api/admin/cron/generate-series
               </code>
             </p>
           </div>
@@ -314,6 +426,10 @@ export default function AppSettingsForm() {
           connected={linkedin.connected}
           memberUrn={linkedin.memberUrn}
           expiresAt={linkedin.expiresAt}
+          organizationUrn={linkedin.organizationUrn}
+          advancedScopes={linkedin.advancedScopes}
+          grantedScopes={linkedin.grantedScopes}
+          canReadComments={linkedin.canReadComments}
         />
       </Suspense>
     </div>

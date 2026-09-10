@@ -8,6 +8,10 @@ interface LinkedInSettingsProps {
   connected: boolean;
   memberUrn: string | null;
   expiresAt: number | null;
+  organizationUrn?: string | null;
+  advancedScopes?: boolean;
+  grantedScopes?: string[];
+  canReadComments?: boolean;
 }
 
 export default function LinkedInSettings({
@@ -15,6 +19,10 @@ export default function LinkedInSettings({
   connected: initialConnected,
   memberUrn,
   expiresAt,
+  organizationUrn,
+  advancedScopes,
+  grantedScopes = [],
+  canReadComments = false,
 }: LinkedInSettingsProps) {
   const searchParams = useSearchParams();
   const [connected, setConnected] = useState(initialConnected);
@@ -88,7 +96,47 @@ export default function LinkedInSettings({
             Token expires {new Date(expiresAt).toLocaleString()}
           </p>
         )}
+        {organizationUrn && (
+          <p className="font-mono text-xs text-coal-dim">
+            Company: {organizationUrn}
+          </p>
+        )}
       </div>
+
+      {connected && (
+        <div className="mt-4 rounded-xl border border-cream-line bg-cream-warm px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-coal-muted">
+            Permissions LinkedIn granted
+          </p>
+          {grantedScopes.length > 0 ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {grantedScopes.map((scope) => (
+                <span
+                  key={scope}
+                  className="rounded-md border border-cream-line bg-white px-2 py-0.5 font-mono text-[11px] text-coal-soft"
+                >
+                  {scope}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-coal-dim">
+              Unknown — this connection predates scope tracking. Reconnect to
+              record exactly what LinkedIn granted.
+            </p>
+          )}
+
+          <p
+            className={`mt-3 text-xs ${
+              canReadComments ? "text-mint-700" : "text-amber-800"
+            }`}
+          >
+            {canReadComments
+              ? "Comment polling is available (r_member_social granted)."
+              : "Comment polling unavailable — r_member_social was not granted, so reading comments returns 403. Publishing and posting replies still work. Use manual paste mode until LinkedIn approves the Community Management API for this app."}
+          </p>
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap gap-2">
         {!connected ? (
@@ -125,7 +173,17 @@ export default function LinkedInSettings({
           <li>Add product: Share on LinkedIn</li>
           <li>Redirect URL: your site + /api/admin/linkedin/callback</li>
           <li>Request scope: w_member_social (may need app review)</li>
+          <li>
+            Company publishing and automatic analytics require Community
+            Management API approval and reconnecting with advanced scopes
+            enabled.
+          </li>
         </ol>
+        {advancedScopes && (
+          <p className="mt-2 font-semibold text-amber-700">
+            Advanced scopes are enabled. Reconnect after changing scope access.
+          </p>
+        )}
       </div>
     </div>
   );
