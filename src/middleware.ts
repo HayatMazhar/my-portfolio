@@ -6,9 +6,13 @@ const PUBLIC_ADMIN_API = [
   "/api/admin/session/login",
   "/api/admin/session/logout",
   "/api/admin/setup",
+  "/api/admin/ping",
   "/api/admin/diag",
   "/api/admin/linkedin/callback",
   "/api/admin/cron/publish-scheduled",
+  "/api/admin/cron/poll-comments",
+  "/api/admin/cron/sync-metrics",
+  "/api/admin/cron/generate-series",
 ];
 
 function isPublicAdminPath(pathname: string): boolean {

@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-guard";
 import PostEditor from "@/components/admin/PostEditor";
-import { getPost } from "@/lib/admin-db";
+import { getPost, listPosts } from "@/lib/admin-db";
 import { getLinkedInConnectionStatus } from "@/lib/linkedin";
+import { recommendPublishingSlot } from "@/lib/linkedin-scheduling";
 
 export const dynamic = "force-dynamic";
 
@@ -13,20 +14,19 @@ export default async function AdminPostPage({
 }) {
   await requireAdmin();
 
-  const [post, linkedin] = await Promise.all([
+  const [post, linkedin, publishedPosts] = await Promise.all([
     getPost(params.id),
     getLinkedInConnectionStatus(),
+    listPosts("posted"),
   ]);
 
   if (!post) notFound();
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-coal line-clamp-2">{post.topic}</h1>
-        <p className="mt-1 text-sm text-coal-muted">Review, approve, publish.</p>
-      </div>
-      <PostEditor post={post} linkedinConnected={linkedin.connected} />
-    </div>
+    <PostEditor
+      post={post}
+      linkedinConnected={linkedin.connected}
+      recommendedSlot={recommendPublishingSlot(publishedPosts)}
+    />
   );
 }

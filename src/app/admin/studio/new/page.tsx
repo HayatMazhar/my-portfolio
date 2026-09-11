@@ -1,10 +1,17 @@
 import { requireAdmin } from "@/lib/admin-guard";
 import GeneratePostForm from "@/components/admin/GeneratePostForm";
+import { listPosts } from "@/lib/admin-db";
+import { usedTopicIds } from "@/lib/linkedin-idea-bank";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewPostPage() {
+export default async function NewPostPage({
+  searchParams,
+}: {
+  searchParams?: { topic?: string };
+}) {
   await requireAdmin();
+  const posts = await listPosts();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -16,7 +23,10 @@ export default async function NewPostPage() {
         </p>
       </div>
       <div className="rounded-2xl border border-cream-line bg-white p-6">
-        <GeneratePostForm />
+        <GeneratePostForm
+          usedTopicIds={usedTopicIds(posts)}
+          initialTopicId={searchParams?.topic}
+        />
       </div>
     </div>
   );

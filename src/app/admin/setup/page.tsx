@@ -1,12 +1,18 @@
 import AdminSetupForm from "@/components/admin/AdminSetupForm";
-import { isAppAdminConfigured } from "@/lib/app-settings";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSetupPage() {
-  if (await isAppAdminConfigured()) {
-    redirect("/admin/login");
+  try {
+    const { resolveAdminStoreBackend } = await import("@/lib/admin-db");
+    const { isAppAdminConfigured } = await import("@/lib/app-settings");
+    await resolveAdminStoreBackend();
+    if (await isAppAdminConfigured()) {
+      redirect("/admin/login");
+    }
+  } catch (err) {
+    console.error("admin setup page failed:", err);
   }
 
   return (

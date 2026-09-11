@@ -1,26 +1,63 @@
-# Namecheap / cPanel deploy bundle for Next.js standalone.
+﻿# Namecheap / cPanel deploy bundle for Next.js standalone.
 # Usage: powershell -ExecutionPolicy Bypass -File scripts/package-namecheap.ps1
+#        powershell -ExecutionPolicy Bypass -File scripts/package-namecheap.ps1 -SkipBuild
+#
+# Prefer scripts/package-hotfix.ps1 for routine changes â€” it uploads only the
+# files that actually differ from what is already on the server. -NoZip stages
+# the deploy/ folder without building the large archives (used by the hotfix
+# script).
+
+param(
+    [switch]$SkipBuild,
+    [switch]$NoZip
+)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
 
-Write-Host "Building..."
-npm run build | Out-Null
+# Must stay ".next": `output: "standalone"` nests the dist directory inside the
+# standalone bundle and records its name in required-server-files.json, so
+# building elsewhere produces a deploy tree the server cannot start from.
+#
+# Consequence: stop any `next dev` server before packaging. They share .next,
+# and a build replaces the chunks the dev server is serving.
+$build = ".next"
+
+if (-not $SkipBuild) {
+    # The trace-copy step at the end of `next build` intermittently hits EBUSY
+    # on Windows when a virus scanner still holds a freshly written chunk
+    # (usually a .wasm). Clearing the previous standalone output and retrying
+    # clears it; the compile itself is deterministic.
+    $attempts = 3
+    for ($i = 1; $i -le $attempts; $i++) {
+        if (Test-Path "$build\standalone") {
+            Remove-Item "$build\standalone" -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        Write-Host "Building into $build (attempt $i of $attempts)..."
+        npm run build
+        if ($LASTEXITCODE -eq 0) { break }
+        if ($i -eq $attempts) { throw "next build failed after $attempts attempts." }
+        Write-Host "Build failed; retrying in 5s..."
+        Start-Sleep -Seconds 5
+    }
+} elseif (-not (Test-Path "$build\standalone\server.js")) {
+    throw "SkipBuild was set but $build/standalone/server.js is missing."
+}
 
 $dest = "deploy"
 if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
 New-Item -ItemType Directory -Path $dest | Out-Null
 
 Write-Host "Copying standalone output..."
-robocopy ".next\standalone" $dest /E /NFL /NDL /NJH /NJS /NP | Out-Null
+robocopy "$build\standalone" $dest /E /NFL /NDL /NJH /NJS /NP | Out-Null
 
 Write-Host "Merging .next/static..."
 New-Item -ItemType Directory -Path "$dest\.next" -Force | Out-Null
-robocopy ".next\static" "$dest\.next\static" /E /NFL /NDL /NJH /NJS /NP | Out-Null
+robocopy "$build\static" "$dest\.next\static" /E /NFL /NDL /NJH /NJS /NP | Out-Null
 
 Write-Host "Copying static to public/_next/static (cPanel-safe fallback)..."
 New-Item -ItemType Directory -Path "$dest\public\_next\static" -Force | Out-Null
-robocopy ".next\static" "$dest\public\_next\static" /E /NFL /NDL /NJH /NJS /NP | Out-Null
+robocopy "$build\static" "$dest\public\_next\static" /E /NFL /NDL /NJH /NJS /NP | Out-Null
 New-Item -ItemType Directory -Path "$dest\.data" -Force | Out-Null
 
 $productionSiteUrl = "https://mazharhayat.live"
@@ -53,7 +90,7 @@ if ($publicStaticCount -lt 50) { throw "public/_next/static looks incomplete ($p
 Write-Host "Copying public assets..."
 robocopy "public" "$dest\public" /E /XD "_next" /NFL /NDL /NJH /NJS /NP | Out-Null
 # Re-merge _next/static after public copy (robocopy /E merges into existing public/)
-robocopy ".next\static" "$dest\public\_next\static" /E /NFL /NDL /NJH /NJS /NP | Out-Null
+robocopy "$build\static" "$dest\public\_next\static" /E /NFL /NDL /NJH /NJS /NP | Out-Null
 
 @"
 NAMECHEAP DEPLOY CHECKLIST
@@ -67,6 +104,7 @@ NAMECHEAP DEPLOY CHECKLIST
 6. VERIFY these paths exist:
    portfolio/public/_next/static/css/*.css
    portfolio/.data/admin-store.json   (admin password, Groq key, LinkedIn tokens)
+   (Turso uses built-in fetch â€” no node_modules/@libsql required)
 7. Setup Node.js App -> startup file: server.js -> Restart
 8. Do NOT click "Run NPM Install"
 
@@ -98,6 +136,13 @@ function New-LinuxZip($SourceDir, $ZipPath) {
     return $zipFull
 }
 
+if ($NoZip) {
+    Write-Host ""
+    Write-Host "Staged deploy/ without archives (-NoZip)."
+    Write-Host "  static files bundled: $staticCount (.next) + $publicStaticCount (public)"
+    exit 0
+}
+
 Write-Host "Creating portfolio-deploy.zip..."
 New-LinuxZip $dest "portfolio-deploy.zip" | Out-Null
 Copy-Item "portfolio-deploy.zip" "deploy-namecheap.zip" -Force
@@ -126,3 +171,4 @@ Write-Host "  portfolio-deploy.zip   ($mb MB)  - full deploy"
 Write-Host "  deploy-namecheap.zip   (copy)"
 Write-Host "  public-static-fix.zip  - FAST FIX for CSS/JS 404 (extract into portfolio/)"
 Write-Host "  static files bundled: $staticCount (.next) + $publicStaticCount (public)"
+

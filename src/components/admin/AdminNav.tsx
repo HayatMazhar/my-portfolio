@@ -2,11 +2,22 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, PenLine, Settings, LogOut } from "lucide-react";
+import {
+  CalendarDays,
+  ChartNoAxesCombined,
+  LayoutDashboard,
+  MessageCircle,
+  PenLine,
+  Settings,
+  LogOut,
+} from "lucide-react";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/studio/new", label: "Generate", icon: PenLine },
+  { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/admin/analytics", label: "Analytics", icon: ChartNoAxesCombined },
+  { href: "/admin/studio/engagement", label: "Engage", icon: MessageCircle },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import AdminNav from "@/components/admin/AdminNav";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getAdminSessionToken } from "@/lib/admin-cookie-server";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -12,7 +12,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const authed = await isAdminAuthenticated();
+  // Cookie-only check — avoids loading Turso/settings on every admin page (login/setup).
+  const authed = Boolean(await getAdminSessionToken());
 
   return (
     <div className="min-h-screen bg-cream font-jakarta text-coal">

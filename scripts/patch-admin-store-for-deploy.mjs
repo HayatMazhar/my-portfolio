@@ -17,13 +17,16 @@ const productionSiteUrl = (
 ).replace(/\/$/, "");
 
 function readDeployPassword() {
+  const envLocal = resolve(".env.local");
+  if (existsSync(envLocal)) {
+    const match = readFileSync(envLocal, "utf8").match(/^ADMIN_PASSWORD=(.+)$/m);
+    const fromLocal = match?.[1]?.trim().replace(/^["']|["']$/g, "");
+    if (fromLocal) return fromLocal;
+  }
   if (process.env.ADMIN_DEPLOY_PASSWORD?.trim()) {
     return process.env.ADMIN_DEPLOY_PASSWORD.trim();
   }
-  const envLocal = resolve(".env.local");
-  if (!existsSync(envLocal)) return null;
-  const match = readFileSync(envLocal, "utf8").match(/^ADMIN_PASSWORD=(.+)$/m);
-  return match?.[1]?.trim().replace(/^["']|["']$/g, "") || null;
+  return null;
 }
 
 if (!existsSync(storePath)) {

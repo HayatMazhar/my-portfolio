@@ -48,8 +48,14 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
 }
 
 export async function isAdminAuthenticated(): Promise<boolean> {
-  if (!(await isAdminConfigured())) return false;
-  return verifySessionToken(await getAdminSessionToken());
+  try {
+    const { resolveAdminStoreBackend } = await import("@/lib/admin-db");
+    await resolveAdminStoreBackend();
+    if (!(await isAdminConfigured())) return false;
+    return verifySessionToken(await getAdminSessionToken());
+  } catch {
+    return false;
+  }
 }
 
 /** @deprecated Prefer buildSessionCookieHeader in route handlers on shared hosting. */
