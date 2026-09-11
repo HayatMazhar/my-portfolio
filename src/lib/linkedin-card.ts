@@ -59,6 +59,8 @@ export interface CardSource {
 export interface CardCopy {
   template: Exclude<CardTemplate, "auto">;
   headline: string;
+  /** Text-free editorial artwork generated behind the typography. */
+  visualPrompt?: string;
   stat?: string;
   statLabel?: string;
   points?: string[];
